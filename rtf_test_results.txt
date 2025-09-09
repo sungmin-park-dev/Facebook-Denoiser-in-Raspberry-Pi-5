@@ -1,0 +1,48 @@
+라즈베리파이 5 RTF 테스트 결과
+==================================================
+
+모델: Light-32-Depth4
+RTF: 0.834
+모델 크기: 1.7MB
+설정: {'chin': 1, 'chout': 1, 'hidden': 32, 'depth': 4, 'kernel_size': 8, 'stride': 4, 'causal': True, 'resample': 2, 'growth': 1.5, 'max_hidden': 128, 'normalize': True, 'glu': False, 'rescale': 0.1}
+------------------------------
+모델: Light-40
+RTF: 0.905
+모델 크기: 2.6MB
+설정: {'chin': 1, 'chout': 1, 'hidden': 40, 'depth': 4, 'kernel_size': 8, 'stride': 4, 'causal': True, 'resample': 2, 'growth': 1.5, 'max_hidden': 160, 'normalize': True, 'glu': False, 'rescale': 0.1}
+------------------------------
+모델: Standard-Light-48
+RTF: 1.167
+모델 크기: 3.7MB
+설정: {'chin': 1, 'chout': 1, 'hidden': 48, 'depth': 4, 'kernel_size': 8, 'stride': 4, 'causal': True, 'resample': 2, 'growth': 1.5, 'max_hidden': 192, 'normalize': True, 'glu': False, 'rescale': 0.1}
+------------------------------
+모델: Standard-48-Resample4
+RTF: 2.465
+모델 크기: 3.7MB
+설정: {'chin': 1, 'chout': 1, 'hidden': 48, 'depth': 4, 'kernel_size': 8, 'stride': 4, 'causal': True, 'resample': 4, 'growth': 1.5, 'max_hidden': 192, 'normalize': True, 'glu': False, 'rescale': 0.1}
+------------------------------
+모델: Ultra-Light-24
+RTF: 2.511
+모델 크기: 0.4MB
+설정: {'chin': 1, 'chout': 1, 'hidden': 24, 'depth': 3, 'kernel_size': 8, 'stride': 4, 'causal': True, 'resample': 2, 'growth': 1.5, 'max_hidden': 96, 'normalize': True, 'glu': False, 'rescale': 0.1}
+------------------------------
+모델: Ultra-Light-32
+RTF: 2.513
+모델 크기: 0.7MB
+설정: {'chin': 1, 'chout': 1, 'hidden': 32, 'depth': 3, 'kernel_size': 8, 'stride': 4, 'causal': True, 'resample': 2, 'growth': 1.5, 'max_hidden': 128, 'normalize': True, 'glu': False, 'rescale': 0.1}
+------------------------------
+모델: Tiny-16
+RTF: 5.489
+모델 크기: 0.2MB
+설정: {'chin': 1, 'chout': 1, 'hidden': 16, 'depth': 3, 'kernel_size': 6, 'stride': 3, 'causal': True, 'resample': 2, 'growth': 1.5, 'max_hidden': 64, 'normalize': True, 'glu': False, 'rescale': 0.1}
+------------------------------
+모델: Original-48-Depth5
+RTF: 8.996
+모델 크기: 72.0MB
+설정: {'chin': 1, 'chout': 1, 'hidden': 48, 'depth': 5, 'kernel_size': 8, 'stride': 4, 'causal': True, 'resample': 4, 'growth': 2, 'max_hidden': 10000, 'normalize': True, 'glu': True, 'rescale': 0.1}
+------------------------------
+모델: Micro-12
+RTF: 14.262
+모델 크기: 0.0MB
+설정: {'chin': 1, 'chout': 1, 'hidden': 12, 'depth': 2, 'kernel_size': 6, 'stride': 3, 'causal': True, 'resample': 2, 'growth': 1.5, 'max_hidden': 48, 'normalize': True, 'glu': False, 'rescale': 0.1}
+------------------------------
