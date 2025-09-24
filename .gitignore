@@ -13,3 +13,9 @@ build
 *.th
 launch_master.sh
 conf/dset/master.yaml
+.venv/
+venv/
+venv_denoiser/
+dataset/valentini_archive/
+Miniconda3-latest-MacOSX-arm64.sh
+dataset/

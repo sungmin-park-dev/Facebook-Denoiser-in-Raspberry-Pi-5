@@ -1,0 +1,96 @@
+# 라즈베리파이 5 최적화 모델 훈련 설정
+# Light-32-Depth4 모델 구성 (RTF=0.834 달성)
+
+defaults:
+  - _self_
+  - dset: debug
+
+
+# defaults:
+#   - dset: debug  # Debug 데이터셋 사용
+#   - hydra/job_logging: colorlog
+#   - hydra/hydra_logging: colorlog
+
+# 핵심 모델 파라미터 (RTF 최적화 완료)
+demucs:
+  chin: 1
+  chout: 1
+  hidden: 32          # 48→32 (핵심 최적화)
+  depth: 4            # 5→4 감소  
+  kernel_size: 8      # 기본값 유지
+  stride: 4           # 기본값 유지
+  causal: true        # 실시간 처리 필수
+  glu: false          # 파라미터 50% 감소
+  resample: 2         # 4→2 (2.5배 성능 향상)
+  growth: 1.5         # 2.0→1.5 경량화
+  max_hidden: 128     # hidden * 4
+  normalize: true
+  rescale: 0.1
+
+# 데이터셋 설정
+sample_rate: 16000
+segment: 4          
+stride: 1           
+pad: true
+
+# 데이터 증강 (간소화)
+remix: false        
+bandmask: 0.1       
+shift: 4000         
+shift_same: true    
+revecho: 0          
+stft_loss: false    
+
+# 훈련 설정
+epochs: 20          
+batch_size: 16      
+lr: 3e-4           
+optim: adam
+beta2: 0.999
+loss: l1           
+
+# 평가 설정
+eval_every: 5       
+pesq: false    
+dry: 0.             # 추가, 평가시 원본 신호 혼합 비율
+streaming: false    # 추가, 스트리밍 평가 사용 여부     
+
+# 시스템 설정
+device: cpu         
+num_workers: 2      
+verbose: 1
+show: 0
+num_prints: 5       # 추가, 에포크당 로그 출력 횟수
+
+# 체크포인트 설정
+checkpoint: true
+restart: false
+continue_from: ''           # 추가, 시작할 체크포인트 파일 경로
+continue_best: false        # 추가, 최고 성능 상태에서 재시작 여부
+continue_pretrained:        # 추가, 사전훈련 모델명
+checkpoint_file: checkpoint.th  # 추가, 체크포인트 파일명
+best_file: best.th          # 추가, 최고 성능 모델 파일명
+history_file: history.json  # 추가, 훈련 기록 파일명
+samples_dir: samples        # 추가, 향상된 샘플 저장 폴더
+save_again: false           # 추가, 로드 후 재저장만 수행 여부
+
+# 실험 네이밍
+dummy: light32d4_debug
+seed: 2036          # 추가, 재현성을 위한 랜덤 시드
+
+# 이 부분 전체 삭제
+# hydra:
+#   run:
+#     dir: ./outputs/exp_rpi5_optimal_${hydra.job.override_dirname}
+
+# 분산 훈련 설정 (단일 머신 훈련용)
+ddp: false
+ddp_backend: nccl
+rendezvous_file: ./rendezvous
+
+# 내부 설정 (수동 설정 금지)
+rank:
+world_size:
+
+# 모델 타입 지정
+model: demucs

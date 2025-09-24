@@ -1,0 +1,11 @@
+hydra_core>=1.3.2
+hydra_colorlog>=1.0.0
+pystoi==0.3.3
+sounddevice==0.4.0
+julius
+numpy>=1.21.0,<2.0.0  # ARM64 호환성을 위해 1.x 버전 강제
+six==1.17.0
+torch==2.8.0
+torchaudio==2.8.0
+# soundfile
+# PESQ 제외: ARM64 + Python 3.12 빌드 호환성 문제

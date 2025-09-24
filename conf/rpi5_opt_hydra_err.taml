@@ -1,0 +1,66 @@
+# 라즈베리파이 5 최적화 모델 훈련 설정
+# Light-32-Depth4 모델 구성 (RTF=0.834 달성)
+
+defaults:
+  - dset: debug  # Debug 데이터셋 사용
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+
+# 핵심 모델 파라미터 (RTF 최적화 완료)
+demucs:
+  chin: 1
+  chout: 1
+  hidden: 32          # 48→32 (핵심 최적화)
+  depth: 4            # 5→4 감소  
+  kernel_size: 8      # 기본값 유지
+  stride: 4           # 기본값 유지
+  causal: true        # 실시간 처리 필수
+  glu: false          # 파라미터 50% 감소
+  resample: 2         # 4→2 (2.5배 성능 향상)
+  growth: 1.5         # 2.0→1.5 경량화
+  max_hidden: 128     # hidden * 4
+  normalize: true
+  rescale: 0.1
+
+# 데이터셋 설정
+sample_rate: 16000
+segment: 4          
+stride: 1           
+pad: true
+
+# 데이터 증강 (간소화)
+remix: false        
+bandmask: 0.1       
+shift: 4000         
+shift_same: true    
+revecho: 0          
+stft_loss: false    
+
+# 훈련 설정
+epochs: 20          
+batch_size: 16      
+lr: 3e-4           
+optim: adam
+beta2: 0.999
+loss: l1           
+
+# 평가 설정
+eval_every: 5       
+pesq: false         
+
+# 시스템 설정
+device: cpu         
+num_workers: 2      
+verbose: 1
+show: 0
+
+# 체크포인트 설정
+checkpoint: true
+restart: false
+
+# 실험 네이밍
+dummy: light32d4_debug
+
+hydra:
+  run:
+    dir: ./outputs/exp_rpi5_optimal_${hydra.job.override_dirname}

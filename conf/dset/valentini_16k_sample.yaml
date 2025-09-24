@@ -1,0 +1,9 @@
+dset:
+  train: egs/valentini_16k/tr
+  valid:  
+  test: egs/valentini_16k/tt
+  noisy_json: egs/valentini_16k/tt/noisy.json
+  noisy_dir:
+  matching: sort
+eval_every: 3
+pesq: 1
