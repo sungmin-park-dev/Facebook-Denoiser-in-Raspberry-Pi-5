@@ -1,0 +1,48 @@
+# packages in environment at /Users/david/miniconda3/envs/denoiser_modern:
+#
+# Name                     Version          Build            Channel
+antlr4-python3-runtime     4.9.3            pypi_0           pypi
+bzip2                      1.0.8            h80987f9_6
+ca-certificates            2025.9.9         hca03da5_0
+cffi                       2.0.0            pypi_0           pypi
+colorlog                   6.9.0            pypi_0           pypi
+expat                      2.7.1            h313beb8_0
+filelock                   3.19.1           pypi_0           pypi
+fsspec                     2025.9.0         pypi_0           pypi
+git-filter-repo            2.47.0           pypi_0           pypi
+hydra-colorlog             1.2.0            pypi_0           pypi
+hydra-core                 1.3.2            pypi_0           pypi
+jinja2                     3.1.6            pypi_0           pypi
+julius                     0.2.7            pypi_0           pypi
+libcxx                     20.1.8           h8869778_0
+libffi                     3.4.4            hca03da5_1
+libzlib                    1.3.1            h5f15de7_0
+markupsafe                 3.0.2            pypi_0           pypi
+mpmath                     1.3.0            pypi_0           pypi
+ncurses                    6.5              hee39554_0
+networkx                   3.5              pypi_0           pypi
+numpy                      1.26.4           pypi_0           pypi
+omegaconf                  2.3.0            pypi_0           pypi
+openssl                    3.0.17           h4ee41c1_0
+packaging                  25.0             pypi_0           pypi
+pip                        25.2             pyhc872135_0
+pycparser                  2.23             pypi_0           pypi
+pystoi                     0.3.3            pypi_0           pypi
+python                     3.12.11          h421de30_0
+pyyaml                     6.0.2            pypi_0           pypi
+readline                   8.3              h0b18652_0
+scipy                      1.16.2           pypi_0           pypi
+setuptools                 78.1.1           py312hca03da5_0
+six                        1.17.0           pypi_0           pypi
+sounddevice                0.4.0            pypi_0           pypi
+soundfile                  0.13.1           pypi_0           pypi
+sqlite                     3.50.2           h79febb2_1
+sympy                      1.14.0           pypi_0           pypi
+tk                         8.6.15           hcd8a7d5_0
+torch                      2.8.0            pypi_0           pypi
+torchaudio                 2.8.0            pypi_0           pypi
+typing-extensions          4.15.0           pypi_0           pypi
+tzdata                     2025b            h04d1e81_0
+wheel                      0.45.1           py312hca03da5_0
+xz                         5.6.4            h80987f9_1
+zlib                       1.3.1            h5f15de7_0

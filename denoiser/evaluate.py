@@ -11,8 +11,23 @@ import json
 import logging
 import sys
 
-from pesq import pesq
+# --- ORIGINAL CODE ---
+# from pesq import pesq
+# from pystoi import stoi
+
+# --- MODIFIED FOR MACOS PESQ ISSUE ---
+
+try:
+    from pesq import pesq
+    PESQ_AVAILABLE = True
+except ImportError:
+    print("Warning: pesq package not found. PESQ will not be computed.")
+    PESQ_AVAILABLE = False
+    def pesq(*args, **kwargs): return 0.0
+
 from pystoi import stoi
+
+# --- END MODIFICATION ---
 import torch
 
 from .data import NoisyCleanSet
@@ -88,8 +103,10 @@ def _estimate_and_run_metrics(clean, model, noisy, args):
 def _run_metrics(clean, estimate, args, sr):
     estimate = estimate.numpy()[:, 0]
     clean = clean.numpy()[:, 0]
-    if args.pesq:
+    
+    if args.pesq and PESQ_AVAILABLE:
         pesq_i = get_pesq(clean, estimate, sr=sr)
+
     else:
         pesq_i = 0
     stoi_i = get_stoi(clean, estimate, sr=sr)
@@ -104,10 +121,13 @@ def get_pesq(ref_sig, out_sig, sr):
     Returns:
         PESQ
     """
-    pesq_val = 0
-    for i in range(len(ref_sig)):
-        pesq_val += pesq(sr, ref_sig[i], out_sig[i], 'wb')
-    return pesq_val
+    if not PESQ_AVAILABLE:
+        return 0.0
+    else:
+        pesq_val = 0
+        for i in range(len(ref_sig)):
+            pesq_val += pesq(sr, ref_sig[i], out_sig[i], 'wb')
+        return pesq_val
 
 
 def get_stoi(ref_sig, out_sig, sr):

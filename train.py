@@ -81,12 +81,17 @@ def run(args):
 
 
 def _main(args):
-    global __file__
+    # global __file__ # __file__를 따로 조작할 이유가 없음, 맞나?
     # Updating paths in config
+    """    
+    기존 블록 전체 삭제 (Hydra 1.0+부터 자동으로 절대경로 변환)
+
     for key, value in args.dset.items():
         if isinstance(value, str) and key not in ["matching"]:
             args.dset[key] = hydra.utils.to_absolute_path(value)
     __file__ = hydra.utils.to_absolute_path(__file__)
+    """
+    
     if args.verbose:
         logger.setLevel(logging.DEBUG)
         logging.getLogger("denoise").setLevel(logging.DEBUG)
@@ -99,8 +104,13 @@ def _main(args):
         run(args)
 
 
+"""
+Hydra 0.11 ~ 1.0 초기 문법.
 @hydra.main(config_path="conf/config.yaml")
-def main(args):
+"""
+from omegaconf import DictConfig    
+@hydra.main(config_path="conf", config_name="config.yaml", version_base="1.1")
+def main(args: DictConfig):
     try:
         _main(args)
     except Exception:
