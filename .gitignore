@@ -19,3 +19,4 @@ venv_denoiser/
 dataset/valentini_archive/
 Miniconda3-latest-MacOSX-arm64.sh
 dataset/
+outputs/
