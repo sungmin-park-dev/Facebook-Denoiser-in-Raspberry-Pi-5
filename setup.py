@@ -26,16 +26,17 @@ VERSION = "0.1.5"
 
 HERE = Path(__file__).parent
 
+
 REQUIRED = [
     'julius',
-    'hydra_core<1.0',
-    'hydra_colorlog<1.0',
+    'hydra_core>=1.3.2',      # Modified: <1.0 → >=1.3.2 (Hydra 1.x compatibility)
+    'hydra_colorlog>=1.0.0',  # Modified: <1.0 → >=1.0.0 (Hydra 1.x compatibility)
     'numpy>=1.19',
     'pystoi>=0.3.3',
     'six',
     'sounddevice>=0.4',
-    'torch>=1.5',
-    'torchaudio>=0.5',
+    'torch>=2.0',             # Modified: >=1.5 → >=2.0 (PyTorch 2.x compatibility)
+    'torchaudio>=2.0',        # Modified: >=0.5 → >=2.0 (torchaudio 2.x compatibility)
 ]
 
 REQUIRED_LINKS = [

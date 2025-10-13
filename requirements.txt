@@ -1,10 +1,10 @@
-hydra_core==0.11.3
-hydra_colorlog==0.1.4
+hydra_core>=1.3.2
+hydra_colorlog>=1.0.0
 julius
 numpy
 pystoi==0.3.3
 git+https://github.com/ludlows/python-pesq#egg=pesq
 six
 sounddevice==0.4.0
-torchaudio==0.5.1
-torch==1.5.1
+torchaudio>=2.0
+torch>=2.0
