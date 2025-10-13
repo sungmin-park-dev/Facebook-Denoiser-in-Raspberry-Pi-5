@@ -1,412 +1,269 @@
-# Real Time Speech Enhancement in the Waveform Domain (Interspeech 2020)
+# 라즈베리파이 5 실시간 음성 디노이징 프로젝트 - 통합 지침서 v4.1
+- 최종 업데이트: 2025-10-10
+- 작성자: David(박성민) & Claude
+- 상태: Migration 완료 (Mac), Colab 훈련 준비 중
 
-![tests badge](https://github.com/facebookresearch/denoiser/workflows/tests/badge.svg)
-
-We provide a [PyTorch][pytorch] implementation of the paper: [Real Time Speech Enhancement in the Waveform Domain][arxiv].
-In which, we present a causal speech enhancement model working on the raw waveform that runs in real-time on a laptop CPU.
-The proposed model is based on an encoder-decoder architecture with skip-connections. It is optimized on both time and frequency domains, using multiple loss functions.
-Empirical evidence shows that it is capable of removing various kinds of background noise including stationary and non-stationary noises, as well as room reverb.
-Additionally, we suggest a set of data augmentation techniques applied directly on the raw waveform which further improve model performance and its generalization abilities.
-
-Audio samples can be found here: [Samples][web]
-
-<p align="center">
-<img src="./img/demucs.png" alt="Schema representing the structure of Demucs,
-    with a convolutional encoder, an LSTM, and a decoder based on transposed convolutions."
-width="50%"></p>
+## 1. 프로젝트 개요
+- 목표: **라즈베리파이 5(RP5)**에서 실시간 음성 디노이징 시스템 구현
+    - RTF < 1.0 달성 (처리시간/오디오길이)
+    - 품질: PESQ > 2.5, STOI > 0.85
+    - 경량: 모델 < 5MB, 메모리 < 1GB
+- 기술 스택
+  - 원본 (2020): PyTorch 1.5, torchaudio 0.5, Hydra 0.11
+  - 현재 (Migration 완료): PyTorch 2.8.0, torchaudio 2.8.0, Hydra 1.1+, Python 3.12
 
 
-The proposed model is based on the Demucs architecture, originally proposed for music source-separation: ([Paper][demucs-ppr], [Code][demucs-code]).
+## 2. 개발 환경 (3-Tier)
 
-## Colab
+### 환경별 역할 구분
+| | **맥북 🍎** | **Colab ☁️** | **RP5 🔧** |
+| :--- | :---: | :---: | :---: |
+| **설정 관리** | ✅ | ❌ | ❌ |
+| **Debug 테스트** | ✅ | ✅ | ❌ |
+| **Valentini 훈련** | ❌ | ✅ | ❌ |
+| **RTF 테스트** | ❌ | ❌ | ✅ |
+| **실시간 구동** | ❌ | ❌ | ✅ |
 
-If you want to play with the pretrained model inside colab for instance, start from this [Colab Example for Denoiser](https://colab.research.google.com/drive/1Too3cnMpyKaLQ0vPwDw7jUx0Y3eXm2IA?usp=sharing).
+#### 맥북 (설정 관리 허브)
 
-## Installation
+- 역할: 설정 파일 관리, 코드 수정, GitHub 동기화
+- 환경: Apple M1, macOS 15.6.1, Python 3.12 (conda: denoiser_modern)
+- 경로: /Users/david/GitHub/Facebook-Denoiser-in-Raspberry-Pi-5
+- 상태: ✅ Migration 완료, Debug 훈련 성공 (STOI=0.8054)
 
-First, install Python 3.7 (recommended with Anaconda).
-
-#### Through pip (you just want to use pre-trained model out of the box)
-
-Just run
-```bash
-pip install denoiser
+- 환경 활성화:
+```
+conda activate denoiser_modern
+cd /Users/david/GitHub/Facebook-Denoiser-in-Raspberry-Pi-5
 ```
 
-#### Development (if you want to train or hack around)
+#### Colab (훈련 전용)
 
-Clone this repository and install the dependencies. We recommend using
-a fresh virtualenv or Conda environment.
+- 역할: Valentini 데이터셋 본격 훈련 (4-8시간)
+- 환경: GPU 필수, Python 3.10+, Google Drive 연동
+- 상태: ⏳ 준비 중
+- 주의: 중간 체크포인트 저장 필수
 
-```bash
-git clone https://github.com/facebookresearch/denoiser
-cd denoiser
-pip install -r requirements.txt  # If you don't have cuda
-pip install -r requirements_cuda.txt  # If you have cuda
+#### 라즈베리파이 5 (배포 및 실행)
+
+- 역할: 최종 모델 검증 및 실시간 구동
+- 환경: Cortex-A76 4코어, Ubuntu, CPU only
+- 경로: /home/test1/denoiser
+- 상태: ✅ RTF 최적화 완료 (Light-32-Depth4, RTF=0.834)
+
+
+## 3. 프로젝트 진행 상황
+### Phase 1: RTF 최적화 ✅ 완료 (RP5)
+| 모델 | RTF | 크기 | 상태 |
+|------|-----|------|------|
+| **Light-32-Depth4** | **0.834** | **1.7MB** | ✅ **최적** |
+| Light-40 | 0.905 | 2.6MB | ✅ 대안 |
+| Standard-Light-48 | 1.167 | 3.7MB | ⚠️ 경계선 |
+
+- 핵심 파라미터:
+    - hidden=32, depth=4, resample=2 (핵심!)
+    - glu=false, growth=1.5
+    - kernel_size=8, stride=4 (변경 금지)
+
+
+### Phase 2: Migration 및 Debug 훈련 ✅ 완료 (Mac)
+- 주요 수정 사항:
+  1. Hydra 1.1+ 호환 (train.py)
+    - 문제: Hydra 0.11 문법이 1.1+에서 작동 안함
+    - 해결: decorator 변경
+    - 이유: Hydra 1.0+는 config_path에 디렉토리만, config_name에 파일명 분리
+
+    ```
+    # 수정 전
+    @hydra.main(config_path="conf/config.yaml")
+
+    # 수정 후
+    @hydra.main(config_path="conf", config_name="config", version_base="1.1")
+    ```
+
+  2. Config 구조 변경 (conf/config.yaml)- 문제: defaults 로딩 순서 문제
+    - 해결: _self_ 추가 및 override 키워드 사용
+    - 이유: _self_가 없으면 현재 config가 덮어씌워짐
+    ```
+    defaults:
+    - dset: debug
+    - override hydra/job_logging: colorlog
+    - override hydra/hydra_logging: colorlog
+    - _self_
+    ```
+  
+  3. Dataset YAML 구조 변경 (conf/dset/*.yaml)
+    - 문제: dset: 키가 중복 네임스페이스 생성
+    - 해결: dset: 키 완전 제거, 들여쓰기 0칸
+    - 이유: Hydra가 - dset: debug로 로드 시 자동으로 args.dset 네임스페이스 할당
+    ```
+    # 수정 전
+    dset:
+      train: egs/debug/tr
+      matching: sort
+    # 수정 후
+    train: egs/debug/tr
+    matching: sort
+    ```
+    
+
+  4. torchaudio API 변경 (denoiser/audio.py)
+    - 문제: offset 파라미터가 2.8.0에서 제거됨
+    - 해결: 모든 offset → frame_offset 변경
+    - 이유: torchaudio 2.x에서 파라미터명 통일
+    - 결과: Debug 훈련 성공 (1분, STOI=0.8054, best.th 72MB 생성)
+
+### Phase 3: Colab Debug 테스트 ⏳ 다음 단계
+- 목표: Colab 환경에서 훈련 가능 여부 검증
+- 작업 순서:
+    1. Colab 노트북 작성 (colab_notebooks/debug_training.ipynb)
+    2. GitHub 클론 및 패키지 설치
+    3. Debug 훈련 실행 (5-10분)
+    4. STOI > 0.75 확인
+
+- 주의사항:
+    - GPU 사용 권장
+    - Deprecation warnings 무시 가능
+    - 실패 시 에러 로그 확인 후 재시도
+
+
+### Phase 4: Valentini 본격 훈련 📋 예정 (Colab)
+- 사전 준비:
+    - Valentini 불러오기: 사전에 Google drive에 저장해둠
+    - Valentini 데이터셋 경로:
+      - Google Drive 원본: `/content/drive/MyDrive/Colab Notebooks/ARMY Projects/valentini_dataset/original_dataset`
+      - 변환된 데이터: `.../converted_data`
+      - Denoiser 작업 폴더: `/content/denoiser/dataset/valentini/`
+
+
+- 훈련 설정:
+    - epochs=100, batch_size=16, device=cuda
+    - Light-32-Depth4 파라미터 적용
+    - 중간 저장: 10 epoch마다 Drive 백업
+
+- 예상 결과:
+  - 훈련 시간: 4-8시간 (GPU T4)
+  - PESQ > 2.5, STOI > 0.85 목표
+  - 모델 크기: ~2-3MB
+
+
+### Phase 5: RP5 배포 📋 예정
+- 작업 순서:
+  1. Colab → Drive → 로컬 → USB → RP5 전달
+  2. RTF 재검증 (목표: 0.6-0.9)
+  3. 품질 평가 (PESQ/STOI)
+  4. 실시간 디노이징 테스트
+
+- 검증 명령어 (확인 필요):
+```
+python rpi5_optimization/quick_rtf_test.py --model_path trained_models/valentini_light32.th
+python -m denoiser.evaluate --model_path trained_models/valentini_light32.th --data_dir test_data/
+python -m denoiser.live --model_path trained_models/valentini_light32.th --device cpu
 ```
 
-## Live Speech Enhancement
-
-If you want to use `denoiser` live (for a Skype call for instance), you will
-need a specific loopback audio interface.
-
-### Mac OS X
-
-On Mac OS X, this is provided by [Soundflower][soundflower].
-First install Soundflower, and then you can just run
-
-```bash
-python -m denoiser.live
-```
-
-In your favorite video conference call application, just select "Soundflower (2ch)"
-as input to enjoy your denoised speech.
-
-Watch our live demo presentation in the following link: [Demo][demo].
-
-### Linux (tested on Ubuntu 20.04)
-
-You can use the `pacmd` command and the `pavucontrol` tool:
-- run the following commands:
-```bash
-pacmd load-module module-null-sink sink_name=denoiser
-pacmd update-sink-proplist denoiser device.description=denoiser
-```
-This will add a `Monitor of Null Output` to the list of microphones to use. Select it as input in your software. 
-- Launch the `pavucontrol` tool. In the _Playback_ tab, after launching 
-`python -m denoiser.live --out INDEX_OR_NAME_OF_LOOPBACK_IFACE` and the software you want to denoise for (here an in-browser call), you should see both applications. For *denoiser* interface as Playback destination which will output the processed audio stream on the sink we previously created.
-<p align="center">
-<img src="./img/pavucontrol.png" alt="pavucontrol window and parameters to use."
-width="50%"></p>
-
-
-### Other platforms
-
-At the moment, we do not provide official support for other OSes. However, if you
-have a a soundcard that supports loopback (for instance Steinberg products), you can try
-to make it work. You can list the available audio interfaces with `python -m sounddevice`.
-Then once you have spotted your loopback interface, just run
-```bash
-python -m denoiser.live --out INDEX_OR_NAME_OF_LOOPBACK_IFACE
-```
-By default, `denoiser` will use the default audio input. You can change that with the `--in` flag.
-
-Note that on Windows you will need to replace `python` by `python.exe`.
-
-
-### Troubleshooting bad quality in separation
-
-`denoiser` can introduce distortions for very high level of noises.
-Audio can become crunchy if your computer is not fast enough to process audio in real time.
-In that case, you will see an error message in your terminal warning you that `denoiser`
-is not processing audio fast enough. You can try exiting all non required applications.
-
-`denoiser` was tested on a Mac Book Pro with an 2GHz quadcore Intel i5 with DDR4 memory.
-You might experience issues with DDR3 memory. In that case you can trade overall latency for speed by processing multiple frames at once. To do so, run
-```
-python -m denoiser.live -f 2
-```
-You can increase to `-f 3` or more if needed, but each increase will add 16ms of extra latency.
-
-
-### Denoising received speech
-
-You can also denoise received speech, but you won't be able to both denoise your own speech
-and the received speech (unless you have a really beefy computer and enough loopback
-audio interfaces). This can be achieved by selecting the loopback interface as
-the audio output of your VC software and then running
-```bash
-python -m denoiser.live --in "Soundflower (2ch)" --out "NAME OF OUT IFACE"
-```
-
-## Training and evaluation
-
-### Quick Start with Toy Example
-
-1. Run `sh make_debug.sh` to generate json files for the toy dataset.
-2. Run `python train.py`
-
-### Configuration
-
-We use [Hydra][hydra] to control all the training configurations. If you are not familiar with Hydra
-we recommend visiting the Hydra [website][hydra-web].
-Generally, Hydra is an open-source framework that simplifies the development of research applications
-by providing the ability to create a hierarchical configuration dynamically.
-
-The config file with all relevant arguments for training our model can be found under the `conf` folder.
-Notice, under the `conf` folder, the `dset` folder contains the configuration files for
-the different datasets. You should see a file named `debug.yaml` with the relevant configuration for the debug sample set.
-
-You can pass options through the
-command line, for instance `./train.py demucs.hidden=32`.
-Please refer to [conf/config.yaml](conf/config.yaml) for a reference of the possible options.
-You can also directly edit the `config.yaml` file, although this is not recommended
-due to the way experiments are automatically named, as explained hereafter.
-
-### Checkpointing
-
-Each experiment will get a unique name based on the command line options you passed.
-Restarting the same command will reuse the existing folder and automatically
-start from a previous checkpoint if possible. In order to ignore previous checkpoints,
-you must pass the `restart=1` option.
-Note that options like `device`, `num_workers`, etc. have no influence on the experiment name.
-
-
-### Setting up a new dataset
-
-If you want to train using a new dataset, you can:
-1. Create a separate config file for it.
-2. Place the new config files under the `dset` folder. Check [conf/dset/debug.yaml](conf/dset/debug.yaml)
-for more details on configuring your dataset.
-3. Point to it either in the general config file or via the command line, e.g. `./train.py dset=name_of_dset`.
-
-You also need to generate the relevant `.json`files in the `egs/`folder.
-For that purpose you can use the `python -m denoiser.audio` command that will
-scan the given folders and output the required metadata as json.
-For instance, if your noisy files are located in `$noisy` and the clean files in `$clean`, you can do
-
-```bash
-out=egs/mydataset/tr
-mkdir -p $out
-python -m denoiser.audio $noisy > $out/noisy.json
-python -m denoiser.audio $clean > $out/clean.json
-```
-
-## Usage
-
-### 1. Data Structure
-The data loader reads both clean and noisy json files named: `clean.json` and `noisy.json`. These files should contain all the paths to the wav files to be used to optimize and test the model along with their size (in frames).
-You can use `python -m denoiser.audio FOLDER_WITH_WAV1 [FOLDER_WITH_WAV2 ...] > OUTPUT.json` to generate those files.
-You should generate the above files for both training and test sets (and validation set if provided). Once this is done, you should create a yaml (similarly to `conf/dset/debug.yaml`) with the dataset folders' updated paths.
-Please check [conf/dset/debug.yaml](conf/dset/debug.yaml) for more details.
-
-
-### 2. Training
-Training is simply done by launching the `train.py` script:
-
-```
-./train.py
-```
-
-This scripts read all the configurations from the `conf/config.yaml` file.
-
-#### Distributed Training
-
-To launch distributed training you should turn on the distributed training flag. This can be done as follows:
-
-```
-./train.py ddp=1
-```
-
-#### Logs
-
-Logs are stored by default in the `outputs` folder. Look for the matching experiment name.
-In the experiment folder you will find the `best.th` serialized model, the training checkpoint `checkpoint.th`,
-and well as the log with the metrics `trainer.log`. All metrics are also extracted to the `history.json`
-file for easier parsing. Enhancements samples are stored in the `samples` folder (if `noisy_dir` or `noisy_json`
-is set in the dataset).
-
-#### Fine tuning
-
-You can fine-tune one of the 3 pre-trained models `dns48`, `dns64` and `master64`. To do so:
-```
-./train.py continue_pretrained=dns48
-./train.py continue_pretrained=dns64 demucs.hidden=64
-./train.py continue_pretrained=master64 demucs.hidden=64
-```
-
-### 3. Evaluating
-
-Evaluating the models can be done by:
-
-```
-python -m denoiser.evaluate --model_path=<path to the model> --data_dir=<path to folder containing noisy.json and clean.json>
-```
-Note that the path given to `--model_path` should be obtained from one of the `best.th` file, not `checkpoint.th`.
-It is also possible to use pre-trained model, using either `--dns48`, `--dns64`or `--master64`.
-For more details regarding possible arguments, please see:
-
-```
-usage: denoiser.evaluate [-h] [-m MODEL_PATH | --dns48 | --dns64 | --master64]
-                         [--device DEVICE] [--dry DRY]
-                         [--num_workers NUM_WORKERS] [--streaming]
-                         [--data_dir DATA_DIR] [--matching MATCHING]
-                         [--no_pesq] [-v]
-
-Speech enhancement using Demucs - Evaluate model performance
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -m MODEL_PATH, --model_path MODEL_PATH
-                        Path to local trained model.
-  --dns48               Use pre-trained real time H=48 model trained on DNS.
-  --dns64               Use pre-trained real time H=64 model trained on DNS.
-  --master64            Use pre-trained real time H=64 model trained on DNS
-                        and Valentini.
-  --device DEVICE
-  --dry DRY             dry/wet knob coefficient. 0 is only input signal, 1
-                        only denoised.
-  --num_workers NUM_WORKERS
-  --streaming           true streaming evaluation for Demucs
-  --data_dir DATA_DIR   directory including noisy.json and clean.json files
-  --matching MATCHING   set this to dns for the dns dataset.
-  --no_pesq             Don't compute PESQ.
-  -v, --verbose         More loggging
-```
-
-### 4. Denoising
-
-Generating the enhanced files can be done by:
-
-```
-python -m denoiser.enhance --model_path=<path to the model> --noisy_dir=<path to the dir with the noisy files> --out_dir=<path to store enhanced files>
-```
-Notice, you can either provide `noisy_dir` or `noisy_json` for the test data.
-Note that the path given to `--model_path` should be obtained from one of the `best.th` file, not `checkpoint.th`.
-It is also possible to use pre-trained model, using either `--dns48`, `--dns64`or `--master64`.
- For more details regarding possible arguments, please see:
-```
-usage: denoiser.enhance [-h] [-m MODEL_PATH | --dns48 | --dns64 | --master64]
-                        [--device DEVICE] [--dry DRY]
-                        [--num_workers NUM_WORKERS] [--streaming]
-                        [--out_dir OUT_DIR] [--batch_size BATCH_SIZE] [-v]
-                        [--noisy_dir NOISY_DIR | --noisy_json NOISY_JSON]
-
-Speech enhancement using Demucs - Generate enhanced files
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -m MODEL_PATH, --model_path MODEL_PATH
-                        Path to local trained model.
-  --dns48               Use pre-trained real time H=48 model trained on DNS.
-  --dns64               Use pre-trained real time H=64 model trained on DNS.
-  --master64            Use pre-trained real time H=64 model trained on DNS
-                        and Valentini.
-  --device DEVICE
-  --dry DRY             dry/wet knob coefficient. 0 is only input signal, 1
-                        only denoised.
-  --num_workers NUM_WORKERS
-  --streaming           true streaming evaluation for Demucs
-  --out_dir OUT_DIR     directory putting enhanced wav files
-  --batch_size BATCH_SIZE
-                        batch size
-  -v, --verbose         more loggging
-  --noisy_dir NOISY_DIR
-                        directory including noisy wav files
-  --noisy_json NOISY_JSON
-                        json file including noisy wav files
-```
-
-### 5. Reproduce Results
-
-Here we provide a detailed description of how to reproduce the results from the paper:
-#### Valentini dataset
-1. Download [Valentini dataset][valentini].
-2. Adapt the Valentini config file and run the processing script.
-3. Generate the egs/ files as explained here after.
-4. Launch the training using the `launch_valentini.sh` (or `launch_valentini_nc.sh` for non causal) script.
-
-
-**Important:** unlike what we stated in the paper, the causal models were trained with a weight of 0.1
-for the STFT loss, not 0.5.
-
-To create the egs/ file, adapt and run the following code
-```bash
-noisy_train=path to valentini
-clean_train=path to valentini
-noisy_test=path to valentini
-clean_test=path to valentini
-noisy_dev=path to valentini
-clean_dev=path to valentini
-
-mkdir -p egs/val/tr
-mkdir -p egs/val/cv
-mkdir -p egs/val/tt
-
-python -m denoiser.audio $noisy_train > egs/val/tr/noisy.json
-python -m denoiser.audio $clean_train > egs/val/tr/clean.json
-
-python -m denoiser.audio $noisy_test > egs/val/tt/noisy.json
-python -m denoiser.audio $clean_test > egs/val/tt/clean.json
-
-python -m denoiser.audio $noisy_dev > egs/val/cv/noisy.json
-python -m denoiser.audio $clean_dev > egs/val/cv/clean.json
-```
-
-#### DNS dataset
-1. Download both [DNS dataset][dns], be sure to use the interspeech2020 branch.
-2. Setup the paths in the DNS config file to suit your setup and run the processing script.
-3. Generate the egs/ files as explained here after.
-4. Launch the training using the `launch_dns.sh` script.
-
-To create the egs/ file, adapt and run the following code
-```bash
-dns=path to dns
-noisy=path to processed noisy
-clean=path to processed clean
-testset=$dns/datasets/test_set
-mkdir -p egs/dns/tr
-python -m denoiser.audio $noisy > egs/dns/tr/noisy.json
-python -m denoiser.audio $clean > egs/dns/tr/clean.json
-
-mkdir -p egs/dns/tt
-python -m denoiser.audio $testset/synthetic/no_reverb/noisy $testset/synthetic/with_reverb/noisy > egs/dns/tt/noisy.json
-python -m denoiser.audio $testset/synthetic/no_reverb/clean $testset/synthetic/with_reverb/clean > egs/dns/tt/clean.json
-```
-
-## Online Evaluation
-Our online implementation is based on pure python code with some optimization of the streaming convolutions and transposed convolutions.
-We benchmark this implementation on a quad-core Intel i5 CPU at 2 GHz.
-The Real-Time Factor (RTF) of the proposed models are:
-
-| Model | Threads | RTF  |
-|-------|---------|------|
-| H=48  | 1       | 0.8  |
-| H=64  | 1       | 1.2  |
-| H=48  | 4       | 0.6  |
-| H=64  | 4       | 1.0  |
-
-
-In order to compute the RTF on your own CPU launch the following command:
-```
-python -m denoiser.demucs --hidden=48 --num_threads=1
-```
-The output should be something like this:
-```
-total lag: 41.3ms, stride: 16.0ms, time per frame: 12.2ms, delta: 0.21%, RTF: 0.8
-```
-Feel free to explore different settings, i.e. bigger models and more CPU-cores.
-
-
-## Citation
-If you use the code in your paper, then please cite it as:
-```
-@inproceedings{defossez2020real,
-  title={Real Time Speech Enhancement in the Waveform Domain},
-  author={Defossez, Alexandre and Synnaeve, Gabriel and Adi, Yossi},
-  booktitle={Interspeech},
-  year={2020}
-}
-```
-
-## License
-This repository is released under the CC-BY-NC 4.0. license as found in the [LICENSE](LICENSE) file.
-
-The file `denoiser/stft_loss.py` was adapted from the [kan-bayashi/ParallelWaveGAN][wavegan] repository. It is an unofficial implementation of the [ParallelWaveGAN][wavegan-paper] paper, released under the MIT License.
-The file `scripts/matlab_eval.py` was adapted from the [santi-pdp/segan_pytorch][segan] repository. It is an unofficial implementation of the [SEGAN][segan-paper] paper, released under the MIT License.
-
-[arxiv]: https://arxiv.org/abs/2006.12847
-[web]: https://facebookresearch.github.io/denoiser/
-[pytorch]: https://pytorch.org/
-[valentini]: https://datashare.is.ed.ac.uk/handle/10283/2791
-[dns]:https://github.com/microsoft/DNS-Challenge/blob/interspeech2020/master/
-[hydra]: https://github.com/facebookresearch/hydra
-[hydra-web]: https://hydra.cc/
-[soundflower]: https://github.com/mattingalls/Soundflower
-[wavegan]: https://github.com/kan-bayashi/ParallelWaveGAN
-[segan]: https://github.com/santi-pdp/segan_pytorch
-[wavegan-paper]: https://arxiv.org/pdf/1910.11480.pdf
-[segan-paper]: https://arxiv.org/pdf/1703.09452.pdf
-[demucs-code]: https://github.com/facebookresearch/demucs
-[demucs-ppr]: https://hal.archives-ouvertes.fr/hal-02379796/document
-[demo]: https://www.youtube.com/watch?v=77cm_MVtLfk
+## 4. 핵심 인사이트
+
+- 성능 영향 요소 (과거 RP5벤치마킹을 기반으로한 결과)
+  - resample=2 ⭐⭐⭐⭐⭐
+    - 4→2 변경 시 2.5배 성능 향상 (가장 큰 영향)
+  - hidden=32 ⭐⭐⭐⭐⭐
+    - 48→32 감소 시 28% 성능 개선
+  - depth=4 ⭐⭐⭐⭐
+    - 5→4 감소 시 28% 성능 개선
+  - glu=false ⭐⭐⭐
+    - 파라미터 50% 감소, 품질 영향 미미
+  - growth=1.5 ⭐⭐⭐
+    - 2.0→1.5 경량화, max_hidden=128과 함께 사용
+
+- 변경 금지 파라미터
+  - kernel_size=8, stride=4: Demucs 핵심 설계, 변경 시 품질 저하
+  - 스트리밍 방식 RTF 측정 필수: 배치 처리는 비현실적 (0.3-0.4)
+
+
+## 6. 다음 단계 체크리스트
+### 완료
+- Phase 1: RTF 최적화 (RP5)
+- Phase 2: Migration 및 Debug 훈련 (Mac)
+- Light-32-Depth4 모델 검증
+- 통합 지침서 v4.0 작성
+
+### ⏳ 진행 예정
+- 즉시 (30분-1시간):
+  - Colab Debug 테스트
+  - 패키지 설치 및 훈련 검증
+
+- 병렬 진행 (1-2시간):
+  - Valentini 다운로드 및 Drive 업로드 
+  - conf/dset/valentini.yaml 수정
+#
+- 본 훈련 (4-8시간):
+  - Colab Valentini 훈련
+  - 중간 저장 설정
+  - PESQ/STOI 확인
+
+- 배포 (2-3시간):
+  - RP5 전달 및 RTF 재검증
+  - 실시간 디노이징 테스트
+
+
+## 7. 단계별 성공 기준
+### Phase 3 (Colab Debug)
+- Debug 훈련 성공
+- STOI > 0.75
+- 에러 없이 완료
+
+### Phase 4 (Valentini 훈련)
+- 100 epoch 완료
+- PESQ > 2.5 (인간 청취 인식 수준)
+- STOI > 0.85 (명료도 85%)
+- 모델 크기 < 5MB
+
+### Phase 5 (RP5 배포)
+- RTF < 1.0 (실시간 처리)
+- 추가 확인하면 좋은 사항: 메모리 저부하, 온도 안정, 장시간 무오류 구동
+
+### 최종 목표
+- RTF: 0.6-0.9 (RP5 스트리밍)
+- PESQ: > 2.5 (목표: 2.8-3.2)
+- STOI: > 0.85 (목표: 0.88-0.92)
+- 모델: < 3MB, 메모리: < 500MB, 레이턴시: < 100ms
+
+
+## 8. 참고 링크
+- 프로젝트:
+  - GitHub: https://github.com/sungmin-park-dev/Facebook-Denoiser-in-Raspberry-Pi-5
+  - 원본: https://github.com/facebookresearch/denoiser
+  - 논문: https://arxiv.org/abs/2006.12847
+
+- 데이터셋:
+  - Valentini: https://datashare.is.ed.ac.uk/handle/10283/2791
+- 문서:
+  - Hydra 1.1: https://hydra.cc/docs/upgrades/1.0_to_1.1/changes_to_default_composition_order
+  - PyTorch: https://pytorch.org/docs/stable/
+  - torchaudio: https://pytorch.org/audio/stable/
+
+
+## 9. FAQ
+- Q: 왜 맥북에서 훈련 안하나요?
+- A: Colab GPU가 3-5배 빠르고 무료입니다.
+- Q: RTF=0.834가 의미하는 것은?
+- A: 4초 오디오를 3.3초에 처리. RTF < 1.0이면 실시간 가능.
+- Q: PESQ > 2.5면 좋은건가요?
+- A: PESQ는 1.0(최악)~4.5(완벽). 2.5는 "양호", 3.0 이상이면 "우수".
+- Q: 양자화는 언제 하나요?
+- A: Phase 5 이후. FP32 품질 확보 후 INT8 양자화 적용.
+
+## 10. 버전 히스토리
+| 버전 | 날짜 | 변경사항 |
+|------|------|----------|
+| v1.0 | 2025-01-08 | 초기 계획 |
+| v2.0 | 2025-01-09 | RTF 최적화 완료 |
+| v3.0 | 2025-01-10 | Migration 완료 |
+| **v4.1** | **2025-01-11** | **간결화 (클로드 가독성 중심)** |
+
+
+### 핵심 원칙:
+- 환경 분리 (Mac-Colab-RP5 역할 혼동 금지)
+- 단계별 검증 (Debug → Valentini → 배포)
+- 품질 우선 (성능보다 품질 먼저)
+- 문서화 (변경사항 기록)
