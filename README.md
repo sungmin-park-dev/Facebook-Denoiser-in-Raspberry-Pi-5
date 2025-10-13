@@ -113,13 +113,36 @@ cd /Users/david/GitHub/Facebook-Denoiser-in-Raspberry-Pi-5
     - 이유: torchaudio 2.x에서 파라미터명 통일
     - 결과: Debug 훈련 성공 (1분, STOI=0.8054, best.th 72MB 생성)
 
-### Phase 3: Colab Debug 테스트 ⏳ 다음 단계
+
+### Phase 3: Colab Debug 테스트 ✅ 완료 (Colab)
 - 목표: Colab 환경에서 훈련 가능 여부 검증
-- 작업 순서:
-    1. Colab 노트북 작성 (colab_notebooks/debug_training.ipynb)
-    2. GitHub 클론 및 패키지 설치
-    3. Debug 훈련 실행 (5-10분)
-    4. STOI > 0.75 확인
+- 완료 날짜: 2025-10-13
+- 결과:
+  - setup.py 수정: hydra_core>=1.3.2, torch>=2.0 반영
+  - requirements.txt 업데이트: Mac/Colab 버전 통일
+  - Debug 훈련 성공: 2 epochs, 3분 소요
+  - **STOI: 0.8056** (목표 0.75 초과 달성) ✅
+  - **PESQ: 1.25** (Debug용, 본 훈련 아님)
+  - Git commit: cf731606
+- 핵심 해결:
+  - pip install -e . 시 Hydra 다운그레이드 문제 해결
+  - Mac-Colab 환경 완전히 통일 (Hydra 1.3.2, PyTorch 2.8.0)
+
+
+### Phase 4: Valentini 본격 훈련 📋 다음 단계 (Colab)
+- 목표: Light-32-Depth4 모델로 Valentini 데이터셋 훈련
+- 사전 준비:
+  - Valentini 데이터셋 Google Drive 업로드 필요
+  - 데이터셋 경로 확인: `/content/drive/MyDrive/Colab Notebooks/ARMY Projects/valentini_dataset/`
+  - conf/dset/valentini.yaml 설정 확인
+- 훈련 설정:
+  - epochs=100, batch_size=16, device=cuda
+  - Light-32-Depth4 파라미터 (hidden=32, depth=4, resample=2, glu=false)
+  - 중간 저장: 10 epoch마다 체크포인트
+- 예상 결과:
+  - 훈련 시간: 4-8시간 (GPU T4 기준)
+  - 목표: PESQ > 2.5, STOI > 0.85
+  - 모델 크기: ~2-3MB
 
 - 주의사항:
     - GPU 사용 권장
@@ -181,21 +204,28 @@ python -m denoiser.live --model_path trained_models/valentini_light32.th --devic
 
 
 ## 6. 다음 단계 체크리스트
-### 완료
+### 완료 (2025-10-13)
 - Phase 1: RTF 최적화 (RP5)
 - Phase 2: Migration 및 Debug 훈련 (Mac)
-- Light-32-Depth4 모델 검증
-- 통합 지침서 v4.0 작성
+- Phase 3: Colab Debug 테스트** 🎉
+  - setup.py 수정 (Hydra 1.3.2+ 호환)
+  - requirements.txt 업데이트
+  - Debug 훈련 성공 (STOI=0.8056)
+  - Git commit & push (cf731606)
 
 ### ⏳ 진행 예정
-- 즉시 (30분-1시간):
-  - Colab Debug 테스트
-  - 패키지 설치 및 훈련 검증
+- **즉시 시작 (Phase 4):**
+  - [ ] Valentini 데이터셋 Google Drive 업로드 확인
+  - [ ] conf/dset/valentini.yaml 수정 (경로 확인)
+  - [ ] Colab 노트북 작성 (valentini_training.ipynb)
+  - [ ] 본격 훈련 시작 (100 epochs, 4-8시간)
 
-- 병렬 진행 (1-2시간):
-  - Valentini 다운로드 및 Drive 업로드 
-  - conf/dset/valentini.yaml 수정
-#
+- **병렬 진행:**
+  - [ ] 중간 체크포인트 모니터링 (10 epoch마다)
+  - [ ] PESQ/STOI 추이 확인
+  - [ ] Google Drive 백업 설정
+
+
 - 본 훈련 (4-8시간):
   - Colab Valentini 훈련
   - 중간 저장 설정
@@ -253,13 +283,19 @@ python -m denoiser.live --model_path trained_models/valentini_light32.th --devic
 - Q: 양자화는 언제 하나요?
 - A: Phase 5 이후. FP32 품질 확보 후 INT8 양자화 적용.
 
-## 10. 버전 히스토리
 | 버전 | 날짜 | 변경사항 |
 |------|------|----------|
 | v1.0 | 2025-01-08 | 초기 계획 |
 | v2.0 | 2025-01-09 | RTF 최적화 완료 |
 | v3.0 | 2025-01-10 | Migration 완료 |
-| **v4.1** | **2025-01-11** | **간결화 (클로드 가독성 중심)** |
+| v4.1 | 2025-01-11 | 간결화 (클로드 가독성 중심) |
+| **v4.2** | **2025-01-13** | **Phase 3 완료, Phase 4 준비** |
+
+**v4.2 주요 변경:**
+- setup.py 수정: Hydra/PyTorch 버전 업데이트
+- requirements.txt 통일: Mac/Colab 동일 환경
+- Colab Debug 테스트 완료: STOI=0.8056
+- Git commit: cf731606 (setup.py, requirements.txt)
 
 
 ### 핵심 원칙:
