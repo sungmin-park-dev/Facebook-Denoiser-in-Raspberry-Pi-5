@@ -439,20 +439,20 @@ class MultiEnvironmentAudioConverter:
                 print(f">>> ❌ {audio_dir} not found")
         
         print("✅ JSON metadata generation completed!")
-    
+
     def create_dataset_config(self, config_path=None, egs_path=None):
         """Create dataset configuration file"""
         config_path = config_path or self.paths['config']
         egs_path = egs_path or self.paths['egs']
         
+        # Migration: dset: 키 제거 (Hydra 1.3.2 호환)
         config_content = f"""# Valentini dataset configuration
-dset:
-  train: {egs_path}/tr
-  valid:
-  test: {egs_path}/tt
-  noisy_json: {egs_path}/tt/noisy.json
-  noisy_dir:
-  matching: sort
+train: {egs_path}/tr
+valid: {egs_path}/cv
+test: {egs_path}/tt
+noisy_json: {egs_path}/tt/noisy.json
+noisy_dir:
+matching: sort
 eval_every: 10
 pesq: 1
 """

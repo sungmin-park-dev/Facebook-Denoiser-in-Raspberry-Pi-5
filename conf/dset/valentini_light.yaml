@@ -1,9 +1,0 @@
-dset:
-  train: egs/valentini/tr
-  valid:  # 빈 값으로 두면 마지막 에포크 모델 사용
-  test: egs/valentini/tt
-  noisy_json: egs/valentini/tt/noisy.json
-  noisy_dir:
-  matching: sort
-eval_every: 10
-pesq: 1
