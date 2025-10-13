@@ -1,6 +1,6 @@
 # Valentini dataset configuration
 train: egs/valentini/tr
-valid: egs/valentini/cv
+valid: # deleted, there is no validation set in valentini; egs/valentini/cv
 test: egs/valentini/tt
 noisy_json: egs/valentini/tt/noisy.json
 noisy_dir:
