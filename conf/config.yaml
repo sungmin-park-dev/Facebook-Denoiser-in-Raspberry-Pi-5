@@ -4,6 +4,11 @@ defaults:
   - override hydra/hydra_logging: colorlog
   - _self_
 
+# Hydra 설정: working directory 변경 비활성화 (Mac/Colab 경로 통일)
+hydra:
+  job:
+    chdir: false
+
 # Dataset related
 sample_rate: 16000
 segment: 4
