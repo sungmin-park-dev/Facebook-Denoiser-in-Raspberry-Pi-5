@@ -5,5 +5,5 @@ test: egs/valentini/tt
 noisy_json: egs/valentini/tt/noisy.json
 noisy_dir:
 matching: sort
-eval_every: 10
+eval_every: 5 #10
 pesq: 1
