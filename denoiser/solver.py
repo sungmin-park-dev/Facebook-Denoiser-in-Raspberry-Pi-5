@@ -310,6 +310,23 @@ class Solver(object):
                     self._serialize()
                     logger.debug("Checkpoint saved to %s", self.checkpoint_file.resolve())
 
+                    # ========================================
+                    # ✅ 추가: 10 epoch마다 별도 체크포인트 저장
+                    # ========================================
+                    if (epoch + 1) % 10 == 0:
+                        epoch_checkpoint = self.checkpoint_file.parent / f"checkpoint_epoch_{epoch+1:03d}.th"
+                        package = {
+                            'model': serialize_model(self.model),
+                            'optimizer': self.optimizer.state_dict(),
+                            'history': self.history,
+                            'best_state': self.best_state,
+                            'args': self.args,
+                            'loss_history': self.loss_history
+                        }
+                        torch.save(package, epoch_checkpoint)
+                        logger.info(bold(f"💾 Epoch {epoch + 1} checkpoint saved: {epoch_checkpoint.name}"))
+
+    
     def _run_one_epoch(self, epoch, cross_valid=False):
         total_loss = 0
         data_loader = self.tr_loader if not cross_valid else self.cv_loader
