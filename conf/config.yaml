@@ -60,21 +60,21 @@ epochs: 500
 batch_size: 64
 
 # Models
-model: demucs # either demucs or dwave
+model: demucs
 demucs:
   chin: 1
   chout: 1
-  hidden: 48
+  hidden: 32        # ⭐ 48 → 32
   max_hidden: 10000
   causal: true
-  glu: true
-  depth: 5
-  kernel_size: 8
-  stride: 4
+  glu: false        # ⭐ true → false
+  depth: 4          # ⭐ 5 → 4
+  kernel_size: 8    # 유지
+  stride: 4         # 유지
   normalize: true
-  resample: 4
-  growth: 2
-  rescale: 0.1
+  resample: 2       # ⭐ 4 → 2
+  growth: 1.5       # ⭐ 2 → 1.5
+  rescale: 0.1      # 유지
 
 # Experiment launching, distributed
 ddp: false

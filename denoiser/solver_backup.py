@@ -14,13 +14,6 @@ import time
 import torch
 import torch.nn.functional as F
 
-# ========================================
-# ✅ 추가: Loss 그래프를 위한 import
-# ========================================
-import matplotlib
-matplotlib.use('Agg')  # Colab/서버 환경 호환
-import matplotlib.pyplot as plt
-
 from . import augment, distrib, pretrained
 from .enhance import enhance
 from .evaluate import evaluate
@@ -74,15 +67,6 @@ class Solver(object):
         self.args = args
         self.mrstftloss = MultiResolutionSTFTLoss(factor_sc=args.stft_sc_factor,
                                                   factor_mag=args.stft_mag_factor).to(self.device)
-        
-        # ========================================
-        # ✅ 추가: Loss history 저장용 리스트
-        # ========================================
-        self.loss_history = {
-            'train': [],  # 매 epoch의 train loss
-            'valid': []   # 매 epoch의 valid loss
-        }
-        
         self._reset()
 
     def _serialize(self):
@@ -92,12 +76,6 @@ class Solver(object):
         package['history'] = self.history
         package['best_state'] = self.best_state
         package['args'] = self.args
-        
-        # ========================================
-        # ✅ 추가: loss_history도 checkpoint에 저장
-        # ========================================
-        package['loss_history'] = self.loss_history
-        
         tmp_path = str(self.checkpoint_file) + ".tmp"
         torch.save(package, tmp_path)
         # renaming is sort of atomic on UNIX (not really true on NFS)
@@ -135,82 +113,12 @@ class Solver(object):
                 self.optimizer.load_state_dict(package['optimizer'])
             if keep_history:
                 self.history = package['history']
-                
-                # ========================================
-                # ✅ 추가: checkpoint에서 loss_history 복원
-                # ========================================
-                if 'loss_history' in package:
-                    self.loss_history = package['loss_history']
-                    
             self.best_state = package['best_state']
         continue_pretrained = self.args.continue_pretrained
         if continue_pretrained:
             logger.info("Fine tuning from pre-trained model %s", continue_pretrained)
             model = getattr(pretrained, self.args.continue_pretrained)()
             self.model.load_state_dict(model.state_dict())
-
-    # ========================================
-    # ✅ 추가: Loss 그래프 생성 함수
-    # ========================================
-    def _plot_loss(self, epoch):
-        """
-        Loss 그래프를 생성하고 파일로 저장
-        - Colab에서도 작동하도록 정적 이미지로 저장
-        - 매번 새로운 그래프 생성 (업데이트 없음)
-        """
-        try:
-            # 출력 디렉토리 확인
-            output_dir = Path(self.args.samples_dir).parent
-            output_dir.mkdir(exist_ok=True, parents=True)
-            
-            # 그래프 생성
-            plt.figure(figsize=(12, 5))
-            
-            # Train Loss
-            epochs_range = list(range(1, len(self.loss_history['train']) + 1))
-            plt.subplot(1, 2, 1)
-            plt.plot(epochs_range, self.loss_history['train'], 'b-', linewidth=2, marker='o')
-            plt.xlabel('Epoch', fontsize=12)
-            plt.ylabel('Train Loss', fontsize=12)
-            plt.title(f'Training Loss (Current: {self.loss_history["train"][-1]:.5f})', fontsize=14)
-            plt.grid(True, alpha=0.3)
-            
-            # Valid Loss (있는 경우)
-            if self.loss_history['valid'] and any(v > 0 for v in self.loss_history['valid']):
-                plt.subplot(1, 2, 2)
-                plt.plot(epochs_range, self.loss_history['valid'], 'r-', linewidth=2, marker='s')
-                plt.xlabel('Epoch', fontsize=12)
-                plt.ylabel('Valid Loss', fontsize=12)
-                plt.title(f'Validation Loss (Current: {self.loss_history["valid"][-1]:.5f})', fontsize=14)
-                plt.grid(True, alpha=0.3)
-            
-            plt.tight_layout()
-            
-            # 파일로 저장 (epoch별로 별도 파일)
-            plot_path = output_dir / f'loss_epoch_{epoch+1:03d}.png'
-            plt.savefig(plot_path, dpi=100, bbox_inches='tight')
-            logger.info(f"📊 Loss plot saved: {plot_path}")
-            
-            # 최신 그래프는 항상 'loss_latest.png'로도 저장
-            latest_path = output_dir / 'loss_latest.png'
-            plt.savefig(latest_path, dpi=100, bbox_inches='tight')
-            
-            plt.close()
-            
-            # ========================================
-            # ✅ Colab 환경이면 이미지 표시
-            # ========================================
-            try:
-                from IPython.display import Image, display
-                import IPython
-                if 'google.colab' in str(IPython.get_ipython()):
-                    display(Image(filename=str(latest_path)))
-                    logger.info("✅ Graph displayed in Colab")
-            except:
-                pass  # Colab 아니면 스킵
-                
-        except Exception as e:
-            logger.warning(f"❌ Failed to plot loss: {e}")
 
     def train(self):
         if self.args.save_again:
@@ -234,11 +142,6 @@ class Solver(object):
                 bold(f'Train Summary | End of Epoch {epoch + 1} | '
                      f'Time {time.time() - start:.2f}s | Train Loss {train_loss:.5f}'))
 
-            # ========================================
-            # ✅ 추가: Train loss 저장
-            # ========================================
-            self.loss_history['train'].append(train_loss)
-
             if self.cv_loader:
                 # Cross validation
                 logger.info('-' * 70)
@@ -252,26 +155,12 @@ class Solver(object):
             else:
                 valid_loss = 0
 
-            # ========================================
-            # ✅ 추가: Valid loss 저장
-            # ========================================
-            self.loss_history['valid'].append(valid_loss)
-
             best_loss = min(pull_metric(self.history, 'valid') + [valid_loss])
             metrics = {'train': train_loss, 'valid': valid_loss, 'best': best_loss}
             # Save the best model
             if valid_loss == best_loss:
                 logger.info(bold('New best valid loss %.4f'), valid_loss)
                 self.best_state = copy_state(self.model.state_dict())
-
-            # ========================================
-            # ✅ 추가: 5 epoch마다 Loss 그래프 생성
-            # ========================================
-            if (epoch + 1) % 5 == 0:
-                logger.info("=" * 70)
-                logger.info(f"📊 Generating loss plot at Epoch {epoch + 1}")
-                self._plot_loss(epoch)
-                logger.info("=" * 70)
 
             # evaluate and enhance samples every 'eval_every' argument number of epochs
             # also evaluate on last epoch
@@ -284,15 +173,6 @@ class Solver(object):
                     pesq, stoi = evaluate(self.args, self.model, self.tt_loader)
 
                 metrics.update({'pesq': pesq, 'stoi': stoi})
-                
-                # ========================================
-                # ✅ 추가: PESQ/STOI 로그 강조 표시
-                # ========================================
-                logger.info("=" * 70)
-                logger.info(f"🎯 Test Metrics at Epoch {epoch + 1}")
-                logger.info(f"   PESQ: {pesq:.4f}")
-                logger.info(f"   STOI: {stoi:.4f}")
-                logger.info("=" * 70)
 
                 # enhance some samples
                 logger.info('Enhance and save samples...')
@@ -310,23 +190,6 @@ class Solver(object):
                     self._serialize()
                     logger.debug("Checkpoint saved to %s", self.checkpoint_file.resolve())
 
-                    # ========================================
-                    # ✅ 추가: 10 epoch마다 별도 체크포인트 저장
-                    # ========================================
-                    if (epoch + 1) % 10 == 0:
-                        epoch_checkpoint = self.checkpoint_file.parent / f"checkpoint_epoch_{epoch+1:03d}.th"
-                        package = {
-                            'model': serialize_model(self.model),
-                            'optimizer': self.optimizer.state_dict(),
-                            'history': self.history,
-                            'best_state': self.best_state,
-                            'args': self.args,
-                            'loss_history': self.loss_history
-                        }
-                        torch.save(package, epoch_checkpoint)
-                        logger.info(bold(f"💾 Epoch {epoch + 1} checkpoint saved: {epoch_checkpoint.name}"))
-
-    
     def _run_one_epoch(self, epoch, cross_valid=False):
         total_loss = 0
         data_loader = self.tr_loader if not cross_valid else self.cv_loader
