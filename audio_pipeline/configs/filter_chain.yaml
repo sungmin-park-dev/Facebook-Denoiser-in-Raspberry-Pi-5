@@ -1,0 +1,43 @@
+# Audio Pipeline Configuration
+# ============================
+
+# Audio parameters
+audio:
+  sample_rate: 16000
+  chunk_size: 1024
+  channels: 1
+  format: float32
+
+# Filter chain configuration
+filters:
+  # Stage 1: High-pass Filter
+  highpass:
+    enabled: true
+    cutoff_freq: 80
+    order: 4
+
+  # Stage 2: Impulse Noise Suppressor
+  impulse_suppressor:
+    enabled: true
+    threshold_factor: 3.0
+    window_size: 5
+
+  # Stage 3: AI Denoiser
+  ai_denoiser:
+    enabled: true
+    model_path: null  # Auto-detect
+    device: cpu  # or cuda
+
+  # Stage 4: Soft Limiter
+  limiter:
+    enabled: true
+    threshold: 0.8
+    ratio: 10.0
+    attack_time: 0.001
+    release_time: 0.01
+
+# Performance settings
+performance:
+  buffer_size: 4096
+  num_threads: 1
+  realtime_priority: false
