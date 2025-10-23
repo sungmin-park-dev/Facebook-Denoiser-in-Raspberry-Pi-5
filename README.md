@@ -1,305 +1,749 @@
-# 라즈베리파이 5 실시간 음성 디노이징 프로젝트 - 통합 지침서 v4.2
-- 최종 업데이트: 2025-10-10
-- 작성자: David(박성민) & Claude
-- 상태: Migration 완료 (Mac), Colab 훈련 준비 중
+# Real-Time Audio Denoising System for Raspberry Pi 5
 
-## 1. 프로젝트 개요
-- 목표: **라즈베리파이 5(RP5)**에서 실시간 음성 디노이징 시스템 구현
-    - RTF < 1.0 달성 (처리시간/오디오길이)
-    - 품질: PESQ > 2.5, STOI > 0.85
-    - 경량: 모델 < 5MB, 메모리 < 1GB
-- 기술 스택
-  - 원본 (2020): PyTorch 1.5, torchaudio 0.5, Hydra 0.11
-  - 현재 (Migration 완료): PyTorch 2.8.0, torchaudio 2.8.0, Hydra 1.1+, Python 3.12
+**최종 업데이트**: 2025-01-23 
+**작성자**: David(박성민) & Claude 
+**상태**: Phase 6.5 완료, Task A 준비 중
 
+---
 
-## 2. 개발 환경 (3-Tier)
+## 📋 프로젝트 개요
 
-### 환경별 역할 구분
-| | **맥북 🍎** | **Colab ☁️** | **RP5 🔧** |
-| :--- | :---: | :---: | :---: |
-| **설정 관리** | ✅ | ❌ | ❌ |
-| **Debug 테스트** | ✅ | ✅ | ❌ |
-| **Valentini 훈련** | ❌ | ✅ | ❌ |
-| **RTF 테스트** | ❌ | ❌ | ✅ |
-| **실시간 구동** | ❌ | ❌ | ✅ |
+라즈베리파이 5에서 실시간으로 작동하는 음성 디노이징 시스템 개발 프로젝트입니다. 전장 환경에서의 통신 품질 개선을 목표로 하며, 최종적으로 WiFi Direct를 통한 양방향 실시간 음성 통신 시스템을 구축합니다.
 
-#### 맥북 (설정 관리 허브)
+### 핵심 목표
 
-- 역할: 설정 파일 관리, 코드 수정, GitHub 동기화
-- 환경: Apple M1, macOS 15.6.1, Python 3.12 (conda: denoiser_modern)
-- 경로: /Users/david/GitHub/Facebook-Denoiser-in-Raspberry-Pi-5
-- 상태: ✅ Migration 완료, Debug 훈련 성공 (STOI=0.8054)
+- ✅ **실시간 처리**: RTF < 1.0 (실시간보다 빠름)
+- ✅ **저지연**: 전체 latency < 200ms
+- ✅ **고품질**: 배경 소음 효과적 제거
+- 🔄 **양방향 통신**: 동시 송수신 가능
+- 🔄 **전장 환경 특화**: 폭발음, 총성 등 극단 소음 처리
 
-- 환경 활성화:
-```
+### 기술 스택
+
+- **원본** (2020): PyTorch 1.5, torchaudio 0.5, Hydra 0.11
+- **현재** (Migration 완료): PyTorch 2.8.0, torchaudio 2.8.0, Hydra 1.1+, Python 3.12
+
+---
+
+## 🏗️ 3-Tier 개발 환경
+
+|환경|맥북 🍎|Colab ☁️|RP5 🔧|
+|---|---|---|---|
+|설정 관리|✅|❌|❌|
+|Debug 테스트|✅|✅|❌|
+|Valentini 훈련|❌|✅|❌|
+|RTF 테스트|❌|❌|✅|
+|실시간 구동|❌|❌|✅|
+
+### 맥북 (설정 관리 허브)
+
+- **역할**: 코드 수정, GitHub 동기화, Debug 테스트
+- **환경**: Apple M1, macOS 15.6.1, Python 3.12
+- **경로**: `/Users/david/GitHub/Facebook-Denoiser-in-Raspberry-Pi-5`
+- **상태**: ✅ Migration 완료, Debug 훈련 성공 (STOI=0.8054)
+
+```bash
+# 환경 활성화
 conda activate denoiser_modern
 cd /Users/david/GitHub/Facebook-Denoiser-in-Raspberry-Pi-5
 ```
 
-#### Colab (훈련 전용)
+### Colab (훈련 전용)
 
-- 역할: Valentini 데이터셋 본격 훈련 (4-8시간)
-- 환경: GPU 필수, Python 3.10+, Google Drive 연동
-- 상태: ⏳ 준비 중
-- 주의: 중간 체크포인트 저장 필수
+- **역할**: Valentini 데이터셋 본격 훈련 (GPU 필수, 4-8시간)
+- **환경**: GPU T4, Python 3.10+, Google Drive 연동
+- **데이터**: `/content/drive/MyDrive/Colab Notebooks/ARMY Projects/valentini_dataset/`
+- **상태**: ✅ Debug 테스트 완료 (STOI=0.8056), Valentini 훈련 준비 중
 
-#### 라즈베리파이 5 (배포 및 실행)
+### 라즈베리파이 5 (배포 및 실행)
 
-- 역할: 최종 모델 검증 및 실시간 구동
-- 환경: Cortex-A76 4코어, Ubuntu, CPU only
-- 경로: /home/test1/denoiser
-- 상태: ✅ RTF 최적화 완료 (Light-32-Depth4, RTF=0.834)
+- **역할**: 최종 모델 검증 및 실시간 구동
+- **환경**: Cortex-A76 4코어, Ubuntu 24.04 LTS, 8GB RAM, CPU only
+- **경로**: `/home/test1/denoiser`
+- **상태**: ✅ Phase 6.5 완료 (실시간 구동 안정화)
+
+---
+
+## 🚀 프로젝트 진행 상황
+
+### ✅ Phase 1: RTF 최적화 (RP5)
+
+**목표**: 실시간 처리 가능한 경량 모델 탐색
+
+|모델|RTF|크기|상태|
+|---|---|---|---|
+|**Light-32-Depth4**|**0.834**|1.7MB|✅ 최적|
+|Light-40|0.905|2.6MB|✅ 대안|
+|Standard-Light-48|1.167|3.7MB|❌ 실시간 불가|
+
+**핵심 파라미터** (변경 금지):
+
+```yaml
+hidden: 32
+depth: 4
+resample: 2        # 가장 큰 영향 (2.5배 성능 향상)
+glu: false
+growth: 1.5
+kernel_size: 8     # Demucs 핵심 설계, 변경 금지
+stride: 4          # Demucs 핵심 설계, 변경 금지
+```
+
+**성능 영향 순위** (RP5 벤치마킹):
+
+1. resample=2 ⭐⭐⭐⭐⭐ (2.5배 향상)
+2. hidden=32 ⭐⭐⭐⭐⭐ (28% 개선)
+3. depth=4 ⭐⭐⭐⭐ (28% 개선)
+4. glu=false ⭐⭐⭐ (파라미터 50% 감소)
+5. growth=1.5 ⭐⭐⭐ (경량화)
+
+---
+
+### ✅ Phase 2: Migration 완료 (Mac에서 진행)
+
+**목표**: PyTorch 2.8 + Hydra 1.1+ 호환
+
+#### 주요 수정 사항
+
+**1. Hydra 1.1+ 호환 (train.py)**
+
+```python
+# 수정 전
+@hydra.main(config_path="conf/config.yaml")
+
+# 수정 후
+@hydra.main(config_path="conf", config_name="config", version_base="1.1")
+```
+
+**2. Config 구조 변경 (conf/config.yaml)**
+
+```yaml
+defaults:
+  - dset: debug
+  - override hydra/job_logging: colorlog
+  - override hydra/hydra_logging: colorlog
+  - _self_  # 핵심: 현재 config가 덮어씌워지지 않도록
+```
+
+**3. Dataset YAML 구조 변경 (conf/dset/*.yaml)**
+
+```yaml
+# 수정 전
+dset:
+  train: egs/debug/tr
+  matching: sort
+
+# 수정 후 (dset: 키 완전 제거)
+train: egs/debug/tr
+matching: sort
+```
+
+**4. torchaudio API 변경 (denoiser/audio.py)**
+
+```python
+# 수정 전
+torchaudio.load(..., offset=start)
+
+# 수정 후
+torchaudio.load(..., frame_offset=start)
+```
+
+**결과**: Debug 훈련 성공 (1분, STOI=0.8054, best.th 72MB 생성)
+
+---
+
+### ✅ Phase 3: Colab Debug 테스트
+
+**목표**: Colab 환경에서 훈련 가능 여부 검증
+
+**주요 작업**:
+- setup.py 수정: `hydra_core>=1.3.2`, `torch>=2.0` 반영
+- requirements.txt 업데이트: Mac/Colab 버전 통일
+- Debug 훈련 성공: 2 epochs, 3분 소요
+- **STOI**: 0.8056 (목표 0.75 초과 달성) ✅
+- **PESQ**: 1.25 (Debug용, 본 훈련 아님)
 
 
-## 3. 프로젝트 진행 상황
-### Phase 1: RTF 최적화 ✅ 완료 (RP5)
-| 모델 | RTF | 크기 | 상태 |
-|------|-----|------|------|
-| **Light-32-Depth4** | **0.834** | **1.7MB** | ✅ **최적** |
-| Light-40 | 0.905 | 2.6MB | ✅ 대안 |
-| Standard-Light-48 | 1.167 | 3.7MB | ⚠️ 경계선 |
+**핵심 해결**:
 
-- 핵심 파라미터:
-    - hidden=32, depth=4, resample=2 (핵심!)
-    - glu=false, growth=1.5
-    - kernel_size=8, stride=4 (변경 금지)
+- `pip install -e .` 시 Hydra 다운그레이드 문제 해결
+- Mac-Colab 환경 완전히 통일 (Hydra 1.3.2, PyTorch 2.8.0)
 
+---
 
-### Phase 2: Migration 및 Debug 훈련 ✅ 완료 (Mac)
-- 주요 수정 사항:
-  1. Hydra 1.1+ 호환 (train.py)
-    - 문제: Hydra 0.11 문법이 1.1+에서 작동 안함
-    - 해결: decorator 변경
-    - 이유: Hydra 1.0+는 config_path에 디렉토리만, config_name에 파일명 분리
+### ✅ Phase 4: Valentini 본격 훈련
 
+**목표**: Light-32-Depth4 모델로 Valentini 데이터셋 훈련
+
+**사전 준비**:
+
+- ✅ Valentini 데이터셋 Google Drive 업로드
+- ✅ `conf/dset/valentini.yaml` 경로 설정
+- 🔄 loss 변화 그래프 특정 epoch마다 업데이트
+- 🔄 pesq/stoi 평가 특정 epoch마다 업데이트
+- 🔄 Colab 훈련 시작 (100 epochs, 4-8시간)
+
+**훈련 설정**:
+
+```yaml
+epochs: 100
+batch_size: 16
+device: cuda
+# Light-32-Depth4 파라미터 적용
+hidden: 32
+depth: 4
+resample: 2
+glu: false
+```
+
+**예상 결과**:
+
+- 훈련 시간: 4-8시간 (GPU T4 기준)
+- 목표: PESQ > 2.5, STOI > 0.85
+- 모델 크기: ~2-3MB
+
+---
+
+### ✅ Phase 5: 오디오 하드웨어 통합
+
+**목표**: RP5에 USB 오디오 인터페이스 연결 및 설정
+
+**하드웨어 환경**:
+
+```
+Device: H08A Audio USB (hw:1,0)
+- Input Channels: 2 (Stereo)
+- Output Channels: 2 (Stereo)
+- Sample Rate: 48kHz
+```
+
+**구현 사항**:
+
+- H08A USB 오디오 설정
+- 48kHz ↔ 16kHz 리샘플링 구현
+- sounddevice 라이브러리 통합
+- ALSA 채널 설정 해결 (`channels=2`)
+
+**리샘플링 구현**:
+
+```python
+# Downsample: 48kHz → 16kHz
+audio_16k = signal.resample_poly(audio_48k, 1, 3)
+
+# Upsample: 16kHz → 48kHz
+audio_48k = signal.resample_poly(audio_16k, 3, 1)
+```
+
+---
+
+### ✅ Phase 6: 실시간 스트리밍 구현
+
+**목표**: 버퍼 기반 실시간 오디오 처리 시스템
+
+**아키텍처**:
+
+```
+Mic Input (48kHz)
+    ↓
+[Input Thread] → Resample (16kHz) → Processing Queue
+    ↓
+[Processing Thread] → AI Denoiser → Output Queue
+    ↓
+[Output Thread] → Resample (48kHz) → Speaker (2초 버퍼)
+```
+
+**핵심 기술**:
+
+1. **버퍼 기반 스트리밍**
+    
+    ```python
+    BUFFER_SIZE = 96000  # 48kHz * 2초
+    output_buffer = deque(maxlen=BUFFER_SIZE)
     ```
-    # 수정 전
-    @hydra.main(config_path="conf/config.yaml")
-
-    # 수정 후
-    @hydra.main(config_path="conf", config_name="config", version_base="1.1")
-    ```
-
-  2. Config 구조 변경 (conf/config.yaml)- 문제: defaults 로딩 순서 문제
-    - 해결: _self_ 추가 및 override 키워드 사용
-    - 이유: _self_가 없으면 현재 config가 덮어씌워짐
-    ```
-    defaults:
-    - dset: debug
-    - override hydra/job_logging: colorlog
-    - override hydra/hydra_logging: colorlog
-    - _self_
-    ```
-  
-  3. Dataset YAML 구조 변경 (conf/dset/*.yaml)
-    - 문제: dset: 키가 중복 네임스페이스 생성
-    - 해결: dset: 키 완전 제거, 들여쓰기 0칸
-    - 이유: Hydra가 - dset: debug로 로드 시 자동으로 args.dset 네임스페이스 할당
-    ```
-    # 수정 전
-    dset:
-      train: egs/debug/tr
-      matching: sort
-    # 수정 후
-    train: egs/debug/tr
-    matching: sort
+    
+2. **멀티스레드 처리**
+    
+    - Input Callback: 마이크 → 처리 큐
+    - Processing Thread: AI 디노이징
+    - Output Callback: 버퍼 → 스피커
+3. **TorchScript 컴파일**
+    
+    ```python
+    dummy_input = torch.randn(1, 1, CHUNK // 3)
+    model = torch.jit.trace(model, dummy_input)
+    # 추론 속도 20-30% 향상
     ```
     
 
-  4. torchaudio API 변경 (denoiser/audio.py)
-    - 문제: offset 파라미터가 2.8.0에서 제거됨
-    - 해결: 모든 offset → frame_offset 변경
-    - 이유: torchaudio 2.x에서 파라미터명 통일
-    - 결과: Debug 훈련 성공 (1분, STOI=0.8054, best.th 72MB 생성)
+**최종 성능 (Light-32-Depth4)**:
 
-
-### Phase 3: Colab Debug 테스트 ✅ 완료 (Colab)
-- 목표: Colab 환경에서 훈련 가능 여부 검증
-- 완료 날짜: 2025-10-13
-- 결과:
-  - setup.py 수정: hydra_core>=1.3.2, torch>=2.0 반영
-  - requirements.txt 업데이트: Mac/Colab 버전 통일
-  - Debug 훈련 성공: 2 epochs, 3분 소요
-  - **STOI: 0.8056** (목표 0.75 초과 달성) ✅
-  - **PESQ: 1.25** (Debug용, 본 훈련 아님)
-  - Git commit: cf731606
-- 핵심 해결:
-  - pip install -e . 시 Hydra 다운그레이드 문제 해결
-  - Mac-Colab 환경 완전히 통일 (Hydra 1.3.2, PyTorch 2.8.0)
-
-
-### Phase 4: Valentini 본격 훈련 📋 다음 단계 (Colab)
-- 목표: Light-32-Depth4 모델로 Valentini 데이터셋 훈련
-- 사전 준비:
-  - Valentini 데이터셋 Google Drive 업로드 필요
-  - 데이터셋 경로 확인: `/content/drive/MyDrive/Colab Notebooks/ARMY Projects/valentini_dataset/`
-  - conf/dset/valentini.yaml 설정 확인
-- 훈련 설정:
-  - epochs=100, batch_size=16, device=cuda
-  - Light-32-Depth4 파라미터 (hidden=32, depth=4, resample=2, glu=false)
-  - 중간 저장: 10 epoch마다 체크포인트
-- 예상 결과:
-  - 훈련 시간: 4-8시간 (GPU T4 기준)
-  - 목표: PESQ > 2.5, STOI > 0.85
-  - 모델 크기: ~2-3MB
-
-- 주의사항:
-    - GPU 사용 권장
-    - Deprecation warnings 무시 가능
-    - 실패 시 에러 로그 확인 후 재시도
-
-
-### Phase 4: Valentini 본격 훈련 📋 예정 (Colab)
-- 사전 준비:
-    - Valentini 불러오기: 사전에 Google drive에 저장해둠
-    - Valentini 데이터셋 경로:
-      - Google Drive 원본: `/content/drive/MyDrive/Colab Notebooks/ARMY Projects/valentini_dataset/original_dataset`
-      - 변환된 데이터: `.../converted_data`
-      - Denoiser 작업 폴더: `/content/denoiser/dataset/valentini/`
-
-
-- 훈련 설정:
-    - epochs=100, batch_size=16, device=cuda
-    - Light-32-Depth4 파라미터 적용
-    - 중간 저장: 10 epoch마다 Drive 백업
-
-- 예상 결과:
-  - 훈련 시간: 4-8시간 (GPU T4)
-  - PESQ > 2.5, STOI > 0.85 목표
-  - 모델 크기: ~2-3MB
-
-
-### Phase 5: RP5 배포 📋 예정
-- 작업 순서:
-  1. Colab → Drive → 로컬 → USB → RP5 전달
-  2. RTF 재검증 (목표: 0.6-0.9)
-  3. 품질 평가 (PESQ/STOI)
-  4. 실시간 디노이징 테스트
-
-- 검증 명령어 (확인 필요):
 ```
-python rpi5_optimization/quick_rtf_test.py --model_path trained_models/valentini_light32.th
-python -m denoiser.evaluate --model_path trained_models/valentini_light32.th --data_dir test_data/
-python -m denoiser.live --model_path trained_models/valentini_light32.th --device cpu
+============================================================
+📊 Final Stats:
+   Model: Light-32-Depth4
+   Parameters: 434,177 (1.67MB)
+   
+   Average RTF: 0.071 (실시간 대비 14배 여유)
+   Max RTF: 0.095
+   Min RTF: 0.065
+   
+   Latency: ~2초 (버퍼 기반, 끊김 없음)
+   Audio Quality: 배경 소음 일부 제거, 음성 명료도 유지
+   Stability: 장시간 무중단 구동 확인
+============================================================
 ```
 
-## 4. 핵심 인사이트
+---
 
-- 성능 영향 요소 (과거 RP5벤치마킹을 기반으로한 결과)
-  - resample=2 ⭐⭐⭐⭐⭐
-    - 4→2 변경 시 2.5배 성능 향상 (가장 큰 영향)
-  - hidden=32 ⭐⭐⭐⭐⭐
-    - 48→32 감소 시 28% 성능 개선
-  - depth=4 ⭐⭐⭐⭐
-    - 5→4 감소 시 28% 성능 개선
-  - glu=false ⭐⭐⭐
-    - 파라미터 50% 감소, 품질 영향 미미
-  - growth=1.5 ⭐⭐⭐
-    - 2.0→1.5 경량화, max_hidden=128과 함께 사용
+### ✅ Phase 6.5: 원본 Denoiser 모델 테스트
 
-- 변경 금지 파라미터
-  - kernel_size=8, stride=4: Demucs 핵심 설계, 변경 시 품질 저하
-  - 스트리밍 방식 RTF 측정 필수: 배치 처리는 비현실적 (0.3-0.4)
+**목표**: Facebook Research 사전 훈련 모델 성능 비교
+
+**테스트 모델**:
+- dns48 (18.87M params)
+- dns64 (33.53M params)
+- master64 (참고용)
+
+**성능 비교표**:
+
+| Model                     | Parameters | Size   | RTF       | Real-time     |
+| ------------------------- | ---------- | ------ | --------- | ------------- |
+| **Light-32-Depth4** (커스텀) | 0.43M      | 1.67MB | **0.071** | ✅ 14배 여유      |
+| **dns48** (원본)            | 18.87M     | ~72MB  | 1.484     | ❌ Overflow 발생 |
+| **dns64** (원본)            | 33.53M     | ~128MB | 1.887     | ❌ Overflow 발생 |
+
+**결론**:
+- 원본 denoiser 모델은 RP5에서 실시간 처리 불가능
+- Light-32-Depth4가 RP5 최적 모델
+- 품질 vs 속도 트레이드오프: 실시간성 우선
+
+**실행 방법**:
+
+```bash
+# Light-32-Depth4 (커스텀)
+/home/test1/venv/bin/python test_realtime.py
+
+# 원본 모델 테스트 (dns48, dns64)
+/home/test1/venv/bin/python test_realtime_original.py
+```
+
+---
+
+## 🚧 진행 예정 작업
+
+### 🎯 Task A: 전장 특화 필터 체인 구현
+
+#### 현재 문제점 (Phase 6.5 실제 테스트 결과)
+1. ❌ **사용자 음성 왜곡**: Light-32-Depth4 과도한 경량화로 인한 디테일 손실
+2. ❌ **총성/폭발음 효과 낮음**: 학습 데이터에 극단 소음 부재
+3. ❌ **헬기 소리 부자연스러움**: 시간에 따라 변하는 소음 처리 미흡
+
+#### 구현 계획: 4단계 필터 시스템
+```
+Input Audio (48kHz)
+    ↓
+[1] HPF (80Hz)
+    └─ 차량/헬기 저주파 럼블 제거
+    ↓
+[2] Impulse Noise Suppressor ⭐ 핵심
+    └─ 총성/폭발음 피크 선제 제한
+    └─ Fast Attack Compression (Threshold=-6dB, Ratio=10:1, Attack=0.1ms)
+    ↓
+[3] AI Denoiser (Light-32-Depth4)
+    └─ 배경 소음 제거 (향후 Light-40으로 업그레이드 예정)
+    ↓
+[4] Soft Limiter
+    └─ 최종 피크 제한 (클리핑 방지)
+    ↓
+Output (16kHz for transmission)
+```
+
+#### 예상 성능
+- **Total RTF**: ~0.09 (여전히 실시간의 11배 여유)
+- **Latency 증가**: +15ms (총 ~115ms)
+- **품질 개선**: 
+  - 총성/폭발음 -15dB 감쇠 (문제 2 부분 해결)
+  - 저주파 럼블 제거 (문제 3 부분 해결)
+  - 클리핑 완전 방지
+
+#### 기술 요구사항
+- ✅ **모듈화 설계**: 각 필터 독립 모듈
+- ✅ **설정 파일**: 파라미터 외부 설정 (config.yaml)
+- ✅ **실시간 모니터링**: RTF, 버퍼 상태, 필터별 성능
+
+#### 향후 개선 계획 (Phase A.2)
+1. **모델 업그레이드**: Light-32 → Light-40 (음성 왜곡 근본 해결)
+   - RTF: 0.09 → 0.925 (여전히 실시간 가능)
+   - 파라미터: 434K → ~700K (1.6배 증가)
+   - Valentini 재훈련 필요 (4-8시간)
+
+2. **전장 소음 데이터 증강**: 헬기/총성/폭발음 학습
+   - helicopter_noise (30%)
+   - gunshot_noise (20%)
+   - explosion_noise (10%)
+   - 훈련 시간: 4-8시간 (Colab GPU)
+---
+
+### 🎯 Task B: WiFi Direct 양방향 통신
+
+#### 목표
+
+라우터 없이 RP5 간 직접 연결하여 전화와 같은 실시간 양방향 음성 통신 구현
+
+#### 시스템 아키텍처
+
+```
+RP5-A (지휘소)                    RP5-B (전방)
+├─ Mic Thread                     ├─ Mic Thread
+│  └─ Filter+AI → Encode → UDP    │  └─ Filter+AI → Encode → UDP
+├─ Speaker Thread                 ├─ Speaker Thread
+│  └─ UDP ← Decode ← Filter       │  └─ UDP ← Decode ← Filter
+└─ WiFi AP (192.168.4.1)          └─ WiFi Client (192.168.4.2)
+```
+
+#### 구현 단계
+
+**Step 1: WiFi Direct 설정**
+
+```bash
+# RP5-A: Access Point
+sudo nmcli device wifi hotspot ssid "TacticalComm" password "secure123"
+
+# RP5-B: Client
+sudo nmcli device wifi connect "TacticalComm" password "secure123"
+```
+
+**Step 2: UDP 오디오 스트리밍**
+
+- Codec: Opus (16kbps, 저지연 최적화)
+- Protocol: UDP (RTP)
+- Ports: 5000 (A→B), 5001 (B→A)
+
+**Step 3: Full-Duplex 통합**
+
+- 독립적인 송신/수신 스레드
+- 동시 디노이징 처리
+- Echo cancellation (선택)
+
+#### 예상 성능
+
+- **총 지연시간**: 100-150ms
+    - 필터링: 20ms
+    - 인코딩: 10ms
+    - 전송: 20-50ms
+    - 디코딩: 10ms
+    - 출력 버퍼: 50ms
+- **대역폭**: ~20kbps (양방향 40kbps)
+- **통신 범위**: WiFi Direct (~30m 실내, ~100m 야외)
+
+#### 디렉토리 구조
+
+```
+denoiser/
+├── communication/                 # [예정] Task C 통신 모듈
+│   ├── __init__.py
+│   ├── wifi_setup.sh
+│   ├── audio_sender.py
+│   ├── audio_receiver.py
+│   └── full_duplex.py            # 최종 통합 시스템
+```
+
+---
+
+## 📁 디렉토리 구조
+
+```
+denoiser/
+├── models/
+│   ├── best.th                    # Light-32-Depth4 체크포인트
+│   └── (훈련 관련 파일들)
+├── test_realtime.py               # Phase 6 최종 버전 (Light-32-Depth4)
+├── test_realtime_original.py      # 원본 denoiser 테스트용
+├── filters/                       # [예정] Task A 필터 모듈
+│   ├── __init__.py
+│   ├── highpass_filter.py        # [1] HPF (80Hz)
+│   ├── impulse_suppressor.py     # [2] Fast Attack Compressor
+│   ├── soft_limiter.py           # [4] 최종 피크 제한
+│   └── config.yaml               # 필터 파라미터 설정
+├── communication/                 # [예정] Task C 통신 모듈
+│   ├── __init__.py
+│   ├── wifi_setup.sh
+│   ├── audio_sender.py
+│   ├── audio_receiver.py
+│   └── full_duplex.py            # 최종 통합 시스템
+├── utils/
+│   ├── check_audio_device.py     # 오디오 디바이스 확인 도구
+│   └── benchmark.py              # 성능 측정 도구
+├── conf/
+│   ├── config.yaml               # Hydra 메인 설정
+│   └── dset/
+│       ├── debug.yaml            # Debug 데이터셋
+│       └── valentini.yaml        # Valentini 데이터셋
+├── setup.py                       # 패키지 설치 설정
+├── requirements.txt               # 의존성 패키지
+└── README.md                      # 본 문서
+```
+
+---
+
+## ⚙️ 설치 및 실행
+
+### 환경 설정 (RP5)
+
+```bash
+# 가상환경 생성
+python3 -m venv ~/venv
+source ~/venv/bin/activate
+
+# 의존성 설치
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+pip install sounddevice numpy scipy
+
+# 원본 denoiser 모델 사용 시
+pip install soundfile
+```
+
+### 실행 방법
+
+#### Phase 6: Light-32-Depth4 모델
+
+```bash
+cd /home/test1/denoiser
+/home/test1/venv/bin/python test_realtime.py
+```
+
+#### 원본 denoiser 모델 테스트
+
+```bash
+# dns48, dns64, master64 중 선택 (코드 내 MODEL_NAME 변경)
+/home/test1/venv/bin/python test_realtime_original.py
+```
+
+#### 오디오 디바이스 확인
+
+```bash
+/home/test1/venv/bin/python utils/check_audio_device.py
+```
+
+---
+
+## 📊 성능 벤치마크
+
+### Light-32-Depth4 (Phase 6)
+
+```
+============================================================
+📊 Final Stats:
+   Chunks processed: 100+
+   Runtime: 60+ seconds
+   Avg RTF: 0.071
+   Max RTF: 0.095
+   Min RTF: 0.065
+   Buffer: Stable (~2000ms)
+   Status: ✅ 실시간 구동 안정
+============================================================
+```
+
+### 모델 비교 (RP5 환경)
+
+|Metric|Light-32-Depth4|dns48|dns64|
+|---|---|---|---|
+|Params|434K|18.87M|33.53M|
+|Size|1.67MB|~72MB|~128MB|
+|RTF|0.071|1.484|1.887|
+|Real-time|✅|❌|❌|
+|Quality|⭐⭐⭐|⭐⭐⭐⭐⭐|⭐⭐⭐⭐⭐⭐|
+
+---
+
+## 🛠️ 기술 스택
+
+### 프레임워크 & 라이브러리
+
+- **PyTorch**: 2.5.1+cpu (모델 추론)
+- **sounddevice**: 0.5.1 (오디오 I/O)
+- **scipy**: 1.14.1 (리샘플링)
+- **numpy**: 2.1.3 (배열 처리)
+
+### 시스템 레벨
+
+- **ALSA**: 오디오 하드웨어 드라이버
+- **PortAudio**: sounddevice 백엔드
+- **NetworkManager**: WiFi Direct 관리 (Task C)
+
+---
+
+## 🔧 주요 기술 구현
+
+### 1. 리샘플링 (48kHz ↔ 16kHz)
+
+```python
+# Downsample
+audio_16k = signal.resample_poly(audio_48k, 1, 3)
+
+# Upsample
+audio_48k = signal.resample_poly(audio_16k, 3, 1)
+```
+
+### 2. 버퍼 기반 스트리밍
+
+```python
+# 2초 출력 버퍼 (끊김 방지)
+BUFFER_SIZE = 96000  # 48kHz * 2초
+output_buffer = deque(maxlen=BUFFER_SIZE)
+```
+
+### 3. 멀티스레드 처리
+
+```python
+# 독립 스레드
+- Input Callback: 마이크 → 처리 큐
+- Processing Thread: AI 디노이징
+- Output Callback: 버퍼 → 스피커
+```
+
+### 4. TorchScript 컴파일
+
+```python
+# 추론 속도 20-30% 향상
+dummy_input = torch.randn(1, 1, CHUNK // 3)
+model = torch.jit.trace(model, dummy_input)
+```
+
+---
+
+## 🐛 문제 해결 (Troubleshooting)
+
+### 1. ALSA 채널 오류
+
+```
+Error: Invalid number of channels [PaErrorCode -9998]
+
+해결: H08A는 스테레오(2채널) → channels=2 설정
+```
+
+### 2. Input Overflow 경고
+
+```
+⚠️ Input: input overflow
+
+원인: 처리 속도가 입력 속도보다 느림 (RTF > 1.0)
+해결: 더 가벼운 모델 사용 (Light-32-Depth4)
+```
+
+### 3. 모델 로딩 실패
+
+```bash
+# torch.hub 캐시 초기화
+rm -rf ~/.cache/torch/hub
+```
+
+### 4. Hydra 버전 충돌
+
+```bash
+# setup.py 의존성 확인
+pip install hydra-core>=1.3.2
+
+# 또는 requirements.txt 사용
+pip install -r requirements.txt
+```
+
+---
+
+## 🎯 향후 개선 방향
+
+### 단기
+1. 🔄 **Task A.1**: 4단계 필터 체인 통합
+   - HPF + Impulse Suppressor + AI + Limiter
+   - RTF < 0.1 유지, 총성/폭발음 대응
+1. 🔄 **Task B**: WiFi Direct 양방향 통신
+2. 🔄 전장 환경 필드 테스트
+
+### 중장기
+1. **Task A.2**: Light-40 모델 재훈련 (음성 왜곡 해결)
+2. **Task A.3**: 전장 소음 데이터 증강 (헬기/총성 학습)
+3. Echo cancellation 추가
+4. 적응형 비트레이트 제어
 
 
-## 6. 다음 단계 체크리스트
-### 완료 (2025-10-13)
-- Phase 1: RTF 최적화 (RP5)
-- Phase 2: Migration 및 Debug 훈련 (Mac)
-- Phase 3: Colab Debug 테스트** 🎉
-  - setup.py 수정 (Hydra 1.3.2+ 호환)
-  - requirements.txt 업데이트
-  - Debug 훈련 성공 (STOI=0.8056)
-  - Git commit & push (cf731606)
+---
 
-### ⏳ 진행 예정
-- **즉시 시작 (Phase 4):**
-  - [ ] Valentini 데이터셋 Google Drive 업로드 확인
-  - [ ] conf/dset/valentini.yaml 수정 (경로 확인)
-  - [ ] Colab 노트북 작성 (valentini_training.ipynb)
-  - [ ] 본격 훈련 시작 (100 epochs, 4-8시간)
+## 📅 프로젝트 타임라인
 
-- **병렬 진행:**
-  - [ ] 중간 체크포인트 모니터링 (10 epoch마다)
-  - [ ] PESQ/STOI 추이 확인
-  - [ ] Google Drive 백업 설정
+```
+2025-09 ~ 2025-10: Phase 1-6 완료 (모델 훈련 및 실시간 구동)
+2025-10-22: Phase 6.5 완료 (원본 모델 테스트) ⬅️ 현재
+2025-10-23: Task A.1 시작 (4단계 필터 체인)
+2025-10-23: Task C 진행 예정 (WiFi 통신)
+2025-10-24: 통합 및 테스트
+2025-11: Task A.2-A.3 진행 예정 (모델 업그레이드 + 데이터 증강)
+```
 
+---
 
-- 본 훈련 (4-8시간):
-  - Colab Valentini 훈련
-  - 중간 저장 설정
-  - PESQ/STOI 확인
+## 📜 라이선스
 
-- 배포 (2-3시간):
-  - RP5 전달 및 RTF 재검증
-  - 실시간 디노이징 테스트
+이 프로젝트는 [Facebook Research Denoiser](https://github.com/facebookresearch/denoiser)를 기반으로 합니다.
 
+---
 
-## 7. 단계별 성공 기준
-### Phase 3 (Colab Debug)
-- Debug 훈련 성공
-- STOI > 0.75
-- 에러 없이 완료
+## 🔗 참고 자료
 
-### Phase 4 (Valentini 훈련)
-- 100 epoch 완료
-- PESQ > 2.5 (인간 청취 인식 수준)
-- STOI > 0.85 (명료도 85%)
-- 모델 크기 < 5MB
+### 공식 문서
 
-### Phase 5 (RP5 배포)
-- RTF < 1.0 (실시간 처리)
-- 추가 확인하면 좋은 사항: 메모리 저부하, 온도 안정, 장시간 무오류 구동
+- [Facebook Research Denoiser](https://github.com/facebookresearch/denoiser)
+- [PyTorch Documentation](https://pytorch.org/docs/stable/index.html)
+- [sounddevice Documentation](https://python-sounddevice.readthedocs.io/)
+- [Hydra Documentation](https://hydra.cc/docs/intro/)
 
-### 최종 목표
-- RTF: 0.6-0.9 (RP5 스트리밍)
-- PESQ: > 2.5 (목표: 2.8-3.2)
-- STOI: > 0.85 (목표: 0.88-0.92)
-- 모델: < 3MB, 메모리: < 500MB, 레이턴시: < 100ms
+### 기술 참고
 
+- [Opus Codec](https://opus-codec.org/)
+- [WiFi Direct on Linux](https://wireless.wiki.kernel.org/en/users/Documentation/hostapd)
+- [Real Time Speech Enhancement in the Waveform Domain (Paper)](https://arxiv.org/abs/2006.12847)
 
-## 8. 참고 링크
-- 프로젝트:
-  - GitHub: https://github.com/sungmin-park-dev/Facebook-Denoiser-in-Raspberry-Pi-5
-  - 원본: https://github.com/facebookresearch/denoiser
-  - 논문: https://arxiv.org/abs/2006.12847
+---
 
-- 데이터셋:
-  - Valentini: https://datashare.is.ed.ac.uk/handle/10283/2791
-- 문서:
-  - Hydra 1.1: https://hydra.cc/docs/upgrades/1.0_to_1.1/changes_to_default_composition_order
-  - PyTorch: https://pytorch.org/docs/stable/
-  - torchaudio: https://pytorch.org/audio/stable/
+## ❓ FAQ
+### Q: 원본 모델은 왜 실시간이 안되나요?
 
+**A**: dns48/dns64는 파라미터가 43-77배 많아 RP5 CPU로는 RTF > 1.0
 
-## 9. FAQ
-- Q: 왜 맥북에서 훈련 안하나요?
-- A: Colab GPU가 3-5배 빠르고 무료입니다.
-- Q: RTF=0.834가 의미하는 것은?
-- A: 4초 오디오를 3.3초에 처리. RTF < 1.0이면 실시간 가능.
-- Q: PESQ > 2.5면 좋은건가요?
-- A: PESQ는 1.0(최악)~4.5(완벽). 2.5는 "양호", 3.0 이상이면 "우수".
-- Q: 양자화는 언제 하나요?
-- A: Phase 5 이후. FP32 품질 확보 후 INT8 양자화 적용.
+---
 
-| 버전 | 날짜 | 변경사항 |
-|------|------|----------|
-| v1.0 | 2025-01-08 | 초기 계획 |
-| v2.0 | 2025-01-09 | RTF 최적화 완료 |
-| v3.0 | 2025-01-10 | Migration 완료 |
-| v4.1 | 2025-01-11 | 간결화 (클로드 가독성 중심) |
-| **v4.2** | **2025-01-13** | **Phase 3 완료, Phase 4 준비** |
+## 📝 버전 히스토리
 
-**v4.2 주요 변경:**
-- setup.py 수정: Hydra/PyTorch 버전 업데이트
-- requirements.txt 통일: Mac/Colab 동일 환경
-- Colab Debug 테스트 완료: STOI=0.8056
-- Git commit: cf731606 (setup.py, requirements.txt)
+| 버전       | 날짜             | 변경사항                          |
+| -------- | -------------- | ----------------------------- |
+| v1.0     | 2025-01-08     | 초기 계획                         |
+| v2.0     | 2025-01-09     | RTF 최적화 완료                    |
+| v3.0     | 2025-01-10     | Migration 완료                  |
+| v4.1     | 2025-01-11     | 간결화 (클로드 가독성 중심)              |
+| v4.2     | 2025-01-13     | Phase 3 완료, Phase 4 준비        |
+| **v5.0** | **2025-01-23** | **Phase 6.5 완료, Task A/C 추가** |
+| **v5.1** | **2025-01-24** | **Task A 계획 수정 (6단계→4단계)**    |
+**v5.0 주요 변경**:
+- Phase 6 실시간 스트리밍 구현 완료 (RTF 0.071)
+- Phase 6.5 원본 모델 테스트 완료 (dns48/dns64 비교)
+- Task A (필터 체인) 계획 추가
+- Task C (WiFi 통신) 계획 추가
+- 하드웨어 환경 상세 명시
+- Troubleshooting 섹션 추가
+**v5.1 주요 변경**:
+- Task A 단순화: 6단계 → 4단계 필터 시스템
+- 실제 문제점 명시 (음성 왜곡, 총성, 헬기)
+- Phase A.1 (즉시) / A.2-A.3 (향후) 분리
+- Light-40 재훈련 계획 추
 
+---
 
-### 핵심 원칙:
-- 환경 분리 (Mac-Colab-RP5 역할 혼동 금지)
-- 단계별 검증 (Debug → Valentini → 배포)
-- 품질 우선 (성능보다 품질 먼저)
-- 문서화 (변경사항 기록)
+## 기여
+
+이 프로젝트는 군 통신 개선을 위한 연구 프로젝트입니다.
+
+**Contact**: David(박성민) & Claude
+
+---
+
+**Last Updated**: 2025-01-23  
+**Status**: Phase 6.5 완료, Task A 준비 중  
+**Git Commit**: cf731606
