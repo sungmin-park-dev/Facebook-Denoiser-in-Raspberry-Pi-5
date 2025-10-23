@@ -22,8 +22,8 @@ warnings.filterwarnings('ignore')
 HARDWARE_SR = 48000
 MODEL_SR = 16000
 CHUNK = 16000  # 333ms @ 48kHz (처리 단위)
-INPUT_DEVICE = 0
-OUTPUT_DEVICE = 0
+INPUT_DEVICE = 1
+OUTPUT_DEVICE = 1
 MODEL_PATH = '/home/test1/denoiser/models/best.th'
 
 # 버퍼 설정
