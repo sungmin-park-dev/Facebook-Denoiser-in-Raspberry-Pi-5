@@ -1,0 +1,52 @@
+# GunfireSuppressor + AI Denoiser Config
+# ========================================
+# Test configuration combining:
+# 1. GunfireSuppressor (target short impulses)
+# 2. AI Denoiser (background noise removal)
+
+audio:
+  sample_rate: 16000
+  chunk_size: 1024
+  channels: 1
+  format: float32
+
+filters:
+  # Stage 1: HPF (Gentle)
+  highpass:
+    enabled: true
+    cutoff_freq: 80
+    order: 2
+
+  # Stage 2: GunfireSuppressor (NEW!)
+  gunfire_suppressor:
+    enabled: true
+    impulse_threshold: 4.0      # 4x RMS (lower = more aggressive)
+    impulse_duration_ms: 25     # Max 25ms to be considered gunfire
+    suppression_gain: 0.2       # Reduce gunfire to 20% (80% reduction)
+    attack_ms: 1                # Fast attack
+    release_ms: 50              # Gradual release
+
+  # Stage 3: OLD Impulse Suppressor (DISABLED)
+  impulse_suppressor:
+    enabled: false
+    threshold_factor: 10.0
+    window_size: 3
+
+  # Stage 4: AI Denoiser
+  ai_denoiser:
+    enabled: true
+    model_path: null
+    device: cpu
+
+  # Stage 5: Soft Limiter
+  limiter:
+    enabled: false
+    threshold: 0.95
+    ratio: 10.0
+    attack_time: 0.001
+    release_time: 0.01
+
+performance:
+  buffer_size: 4096
+  num_threads: 1
+  realtime_priority: false

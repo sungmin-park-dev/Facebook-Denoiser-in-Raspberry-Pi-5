@@ -1,5 +1,10 @@
-# Audio Pipeline Configuration
-# ============================
+# Audio Pipeline Configuration - PRODUCTION
+# ==========================================
+# Based on extensive testing (Oct 2025):
+# - AI Denoiser alone performs best
+# - Impulse Suppressor causes voice distortion
+# - HPF and Limiter have minimal effect
+# - GunfireSuppressor ineffective (requires model retraining)
 
 # Audio parameters
 audio:
@@ -10,27 +15,27 @@ audio:
 
 # Filter chain configuration
 filters:
-  # Stage 1: High-pass Filter
+  # Stage 1: High-pass Filter (DISABLED)
   highpass:
-    enabled: true
+    enabled: false
     cutoff_freq: 80
     order: 4
 
-  # Stage 2: Impulse Noise Suppressor
+  # Stage 2: Impulse Noise Suppressor (DISABLED - causes distortion)
   impulse_suppressor:
-    enabled: true
+    enabled: false
     threshold_factor: 3.0
     window_size: 5
 
-  # Stage 3: AI Denoiser
+  # Stage 3: AI Denoiser (ONLY ENABLED FILTER)
   ai_denoiser:
     enabled: true
-    model_path: null  # Auto-detect
-    device: cpu  # or cuda
+    model_path: null  # Auto-detect (models/current/best.th)
+    device: cpu
 
-  # Stage 4: Soft Limiter
+  # Stage 4: Soft Limiter (DISABLED)
   limiter:
-    enabled: true
+    enabled: false
     threshold: 0.8
     ratio: 10.0
     attack_time: 0.001

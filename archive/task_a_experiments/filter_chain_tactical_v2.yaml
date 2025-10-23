@@ -1,0 +1,44 @@
+# TACTICAL CONFIG V2 - Smart Gunfire Suppression
+# ================================================
+# Strategy: Target SHORT + HIGH AMPLITUDE signals
+# Preserve: Continuous voice (longer duration)
+
+audio:
+  sample_rate: 16000
+  chunk_size: 1024
+  channels: 1
+  format: float32
+
+filters:
+  # Stage 1: Gentle High-Pass Filter
+  # Remove ONLY very low frequencies (explosions, rumble)
+  highpass:
+    enabled: true
+    cutoff_freq: 80       # 300 → 80Hz (preserve male voice fundamental)
+    order: 2              # Gentle rolloff
+
+  # Stage 2: DISABLED - Wrong approach
+  impulse_suppressor:
+    enabled: false        # Not effective for gunfire
+    threshold_factor: 10.0
+    window_size: 3
+
+  # Stage 3: AI Denoiser
+  # Main continuous noise removal
+  ai_denoiser:
+    enabled: true
+    model_path: null
+    device: cpu
+
+  # Stage 4: DISABLED - Hurts voice too much
+  limiter:
+    enabled: false
+    threshold: 0.95
+    ratio: 10.0
+    attack_time: 0.001
+    release_time: 0.01
+
+performance:
+  buffer_size: 4096
+  num_threads: 1
+  realtime_priority: false

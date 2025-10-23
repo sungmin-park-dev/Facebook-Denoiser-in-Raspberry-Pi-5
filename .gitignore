@@ -100,3 +100,6 @@ models/valentini_*/checkpoint_*.th
 models/valentini_*/history.json
 models/valentini_*/loss_*.png
 models/debug_*/
+
+# Audio samples (Task A test files)
+audio_samples/

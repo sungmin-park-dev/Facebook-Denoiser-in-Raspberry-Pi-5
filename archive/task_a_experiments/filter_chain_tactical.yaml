@@ -1,0 +1,47 @@
+# TACTICAL CONFIG - Gunfire/Explosion Suppression
+# =================================================
+# Designed to remove gunfire, explosions, and impulse noise
+# while preserving human voice
+
+audio:
+  sample_rate: 16000
+  chunk_size: 1024
+  channels: 1
+  format: float32
+
+filters:
+  # Stage 1: Band-pass Filter (VOICE RANGE ONLY)
+  # Preserve 300Hz - 3400Hz (voice fundamental + harmonics)
+  # Remove low-freq explosions and high-freq gunfire cracks
+  highpass:
+    enabled: true
+    cutoff_freq: 300      # Remove low-freq explosions
+    order: 4
+
+  # Stage 2: AGGRESSIVE Impulse Suppressor
+  # Target short-duration, high-amplitude signals (gunfire)
+  impulse_suppressor:
+    enabled: true
+    threshold_factor: 2.0   # Very aggressive (was 10.0)
+    window_size: 10         # Longer window for stability
+
+  # Stage 3: AI Denoiser
+  # Remove continuous background noise
+  ai_denoiser:
+    enabled: true
+    model_path: null
+    device: cpu
+
+  # Stage 4: Soft Limiter
+  # Prevent any remaining impulses from passing through
+  limiter:
+    enabled: true
+    threshold: 0.5          # Much lower threshold (was 0.95)
+    ratio: 10.0
+    attack_time: 0.001
+    release_time: 0.01
+
+performance:
+  buffer_size: 4096
+  num_threads: 1
+  realtime_priority: false

@@ -1,0 +1,39 @@
+# Gentle Gunfire Suppression
+# ============================
+# Conservative settings to preserve voice quality
+
+audio:
+  sample_rate: 16000
+  chunk_size: 1024
+  channels: 1
+  format: float32
+
+filters:
+  highpass:
+    enabled: true
+    cutoff_freq: 80
+    order: 2
+
+  gunfire_suppressor:
+    enabled: true
+    impulse_threshold: 5.0      # Higher = less sensitive (was 4.0)
+    impulse_duration_ms: 20     # Shorter = only catch very short impulses
+    suppression_gain: 0.3       # Less reduction (was 0.2)
+    attack_ms: 1
+    release_ms: 50
+
+  impulse_suppressor:
+    enabled: false
+
+  ai_denoiser:
+    enabled: true
+    model_path: null
+    device: cpu
+
+  limiter:
+    enabled: false
+
+performance:
+  buffer_size: 4096
+  num_threads: 1
+  realtime_priority: false
