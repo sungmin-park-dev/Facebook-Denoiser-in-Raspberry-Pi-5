@@ -1,0 +1,44 @@
+# OPTIMIZED CONFIG - Voice Preservation
+# ============================
+# Based on test results:
+# - AI Denoiser works well (Test 1)
+# - Impulse Suppressor is too aggressive (Test 2, 3)
+# - Solution: Disable or heavily relax Impulse Suppressor
+
+audio:
+  sample_rate: 16000
+  chunk_size: 1024
+  channels: 1
+  format: float32
+
+filters:
+  # Stage 1: High-pass Filter (Gentle)
+  highpass:
+    enabled: true
+    cutoff_freq: 60       # 80 → 60Hz (preserve low voice)
+    order: 2              # 4 → 2 (gentler rolloff)
+
+  # Stage 2: Impulse Noise Suppressor (DISABLED - causes distortion)
+  impulse_suppressor:
+    enabled: false        # ❌ DISABLED - too aggressive
+    threshold_factor: 10.0
+    window_size: 3
+
+  # Stage 3: AI Denoiser (Works well!)
+  ai_denoiser:
+    enabled: true         # ✅ MAIN DENOISING
+    model_path: null
+    device: cpu
+
+  # Stage 4: Soft Limiter (Gentle)
+  limiter:
+    enabled: true
+    threshold: 0.95       # 0.8 → 0.95 (less limiting)
+    ratio: 10.0
+    attack_time: 0.001
+    release_time: 0.01
+
+performance:
+  buffer_size: 4096
+  num_threads: 1
+  realtime_priority: false

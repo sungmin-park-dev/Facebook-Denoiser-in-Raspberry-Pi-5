@@ -1,0 +1,33 @@
+# SIMPLE CONFIG - AI Denoiser Only
+# ============================
+# Based on test results: AI model alone works best
+
+audio:
+  sample_rate: 16000
+  chunk_size: 1024
+  channels: 1
+  format: float32
+
+filters:
+  # Stage 1: High-pass Filter
+  highpass:
+    enabled: false        # ❌ DISABLED
+
+  # Stage 2: Impulse Noise Suppressor
+  impulse_suppressor:
+    enabled: false        # ❌ DISABLED
+
+  # Stage 3: AI Denoiser (Best performer)
+  ai_denoiser:
+    enabled: true         # ✅ ONLY THIS
+    model_path: null
+    device: cpu
+
+  # Stage 4: Soft Limiter
+  limiter:
+    enabled: false        # ❌ DISABLED
+
+performance:
+  buffer_size: 4096
+  num_threads: 1
+  realtime_priority: false
