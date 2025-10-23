@@ -1,23 +1,93 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+venv_denoiser/
+
+# PyTorch
+*.pth
+*.pt
+*.ckpt
+checkpoints/
+logs/
+runs/
+
+# Model files (large)
+models/*.th
+models/*.pth
+!models/best.th  # Keep the final model
+
+# Audio files
+*.wav
+*.mp3
+*.flac
+test_audio/
+recordings/
+
+# Cache
+.cache/
+*.cache
+__pycache__/
+
+# Torch Hub
+.torch/
+hub/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.vim
+
+# OS
 .DS_Store
-*.pyc
-egs/
+Thumbs.db
+*.log
 .nfs*
+
+# Testing
+test_output/
+benchmark_results/
+
+# Temporary
+tmp/
+temp/
+*.tmp
+
+# Project specific
+egs/
 outputs/
 enhanced/
-.vim
-models/
 private/
-dist
-build
-*.egg-info
-*.th
 launch_master.sh
 conf/dset/master.yaml
-.venv/
-venv/
-venv_denoiser/
 dataset/valentini_archive/
 Miniconda3-latest-MacOSX-arm64.sh
 dataset/
-outputs/
 reports/
