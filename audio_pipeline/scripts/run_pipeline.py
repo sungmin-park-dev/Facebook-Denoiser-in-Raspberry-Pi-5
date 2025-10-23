@@ -16,6 +16,8 @@ Target: RTF < 0.1 on Raspberry Pi 5
 import sounddevice as sd
 import torch
 import numpy as np
+import sys
+import argparse
 import time
 import yaml
 from pathlib import Path
