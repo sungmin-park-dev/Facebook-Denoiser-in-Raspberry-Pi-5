@@ -31,10 +31,19 @@ os.environ['PYTHONWARNINGS'] = 'ignore'
 warnings.filterwarnings('ignore')
 
 # ========== Configuration Loading ==========
-CONFIG_PATH = Path(__file__).parent.parent / 'configs' / 'filter_chain.yaml'
+# Use custom config if provided, otherwise use default
+if '--config' in sys.argv:
+    parser_temp = argparse.ArgumentParser()
+    parser_temp.add_argument('--config', type=str)
+    args_temp, _ = parser_temp.parse_known_args()
+    CONFIG_PATH = Path(args_temp.config) if args_temp.config else Path(__file__).parent.parent / 'configs' / 'filter_chain.yaml'
+else:
+    CONFIG_PATH = Path(__file__).parent.parent / 'configs' / 'filter_chain.yaml'
 
 with open(CONFIG_PATH) as f:
     config = yaml.safe_load(f)
+    
+print(f"📄 Using config: {CONFIG_PATH.name}")
 
 # Audio settings
 HARDWARE_SR = 48000
@@ -93,6 +102,8 @@ parser.add_argument('--output', type=int, default=None,
                     help='Output device index (see --list-devices)')
 parser.add_argument('--device', type=int, default=None,
                     help='Use same device for input and output')
+parser.add_argument('--config', type=str, default=None,
+                    help='Path to custom config file (default: audio_pipeline/configs/filter_chain.yaml)')
 
 args = parser.parse_args()
 
