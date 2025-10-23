@@ -36,11 +36,6 @@ checkpoints/
 logs/
 runs/
 
-# Model files (large)
-models/*.th
-models/*.pth
-!models/best.th  # Keep the final model
-
 # Audio files
 *.wav
 *.mp3
@@ -88,6 +83,20 @@ private/
 launch_master.sh
 conf/dset/master.yaml
 dataset/valentini_archive/
-Miniconda3-latest-MacOSX-arm64.sh
 dataset/
 reports/
+
+# Models - Explicit exclusion
+# Debug 모델 전체 제외
+models/debug_standard48_1ep/
+
+# Valentini: checkpoint, history, loss 제외
+models/valentini_light32_60ep/checkpoint_*.th
+models/valentini_light32_60ep/history.json
+models/valentini_light32_60ep/loss_*.png
+
+# 미래 모델을 위한 패턴
+models/valentini_*/checkpoint_*.th
+models/valentini_*/history.json
+models/valentini_*/loss_*.png
+models/debug_*/
