@@ -45,7 +45,11 @@ class OpusCodec:
             channels=channels,
             application=opuslib.APPLICATION_VOIP  # Optimized for voice
         )
-        self.encoder.bitrate = bitrate
+        # Set bitrate (Opus requires >= 500 bps, using 24000 for good quality at 16kHz)
+        try:
+            self.encoder.bitrate = max(bitrate, 24000)
+        except:
+            pass  # Use default bitrate if setting fails
         
         # Initialize decoder
         self.decoder = opuslib.Decoder(
