@@ -22,6 +22,7 @@ import sys
 import queue
 import time
 import threading
+import yaml
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
@@ -158,7 +159,10 @@ class FullDuplexComm:
                     
                     # AI Denoising
                     with torch.no_grad():
-                        audio_tensor = torch.from_numpy(audio_16k).float().unsqueeze(0).unsqueeze(0)
+                        # Flatten to 1D if needed (handle 2D resampling output)
+                        audio_16k_flat = audio_16k.flatten() if audio_16k.ndim > 1 else audio_16k
+                        # Shape: [batch=1, channels=1, time]
+                        audio_tensor = torch.from_numpy(audio_16k_flat).float().unsqueeze(0).unsqueeze(0)
                         denoised = self.denoiser(audio_tensor)
                         audio_denoised = denoised.squeeze().cpu().numpy()
                     
@@ -284,13 +288,15 @@ def list_audio_devices():
 
 def main():
     parser = argparse.ArgumentParser(description="RP5 Full-Duplex Communication")
-    parser.add_argument("--role", type=str, required=True, choices=['A', 'B'],
+    parser.add_argument("--config", type=str, default=None,
+                       help="Config file path (e.g., configs/rp5a_config.yaml)")
+    parser.add_argument("--role", type=str, required=False, choices=['A', 'B'],
                        help="Role: A or B")
-    parser.add_argument("--peer-ip", type=str, required=True,
+    parser.add_argument("--peer-ip", type=str, required=False,
                        help="Peer RP5 IP address")
-    parser.add_argument("--mic-device", type=int, required=True,
+    parser.add_argument("--mic-device", type=int, required=False,
                        help="Microphone device index")
-    parser.add_argument("--speaker-device", type=int, required=True,
+    parser.add_argument("--speaker-device", type=int, required=False,
                        help="Speaker device index")
     parser.add_argument("--send-port", type=int, default=9998,
                        help="UDP sending port (default: 9998)")
@@ -303,9 +309,35 @@ def main():
     
     args = parser.parse_args()
     
+    # Load config file if provided
+    if args.config:
+        with open(args.config, 'r') as f:
+            config = yaml.safe_load(f)
+        
+        # Override with config file values (command line args take precedence)
+        args.role = args.role or config.get('role')
+        args.peer_ip = args.peer_ip or config.get('peer_ip')
+        args.mic_device = args.mic_device if args.mic_device is not None else config.get('mic_device')
+        args.speaker_device = args.speaker_device if args.speaker_device is not None else config.get('speaker_device')
+        args.send_port = config.get('send_port', args.send_port)
+        args.recv_port = config.get('recv_port', args.recv_port)
+        args.model = config.get('model', args.model)
+        
+        print(f"📄 Loaded config from: {args.config}")
+    
     if args.list_devices:
         list_audio_devices()
         return
+    
+    # Validate required arguments
+    if not args.role:
+        parser.error("--role is required (or provide via config file)")
+    if not args.peer_ip:
+        parser.error("--peer-ip is required (or provide via config file)")
+    if args.mic_device is None:
+        parser.error("--mic-device is required (or provide via config file)")
+    if args.speaker_device is None:
+        parser.error("--speaker-device is required (or provide via config file)")
     
     # Create and start full-duplex comm
     comm = FullDuplexComm(

@@ -1,0 +1,11 @@
+# RP5-A Configuration for WiFi Direct Full-Duplex Communication
+# Network: WiFi Direct (RP5-Direct)
+# RP5-A acts as Access Point (10.42.0.1)
+
+role: A
+peer_ip: 10.42.0.224  # RP5-B IP
+mic_device: 5          # Default/Bluetooth
+speaker_device: 5      # Default/Bluetooth
+send_port: 9998
+recv_port: 9999
+model: Light-32-Depth4

@@ -7,5 +7,6 @@ numpy>=1.21.0,<2.0.0  # ARM64 호환성을 위해 1.x 버전 강제
 six==1.17.0
 torch==2.8.0
 torchaudio==2.8.0
+PyYAML>=6.0  # Config file support
 # soundfile
 # PESQ 제외: ARM64 + Python 3.12 빌드 호환성 문제
