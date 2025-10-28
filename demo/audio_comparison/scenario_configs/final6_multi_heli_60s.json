@@ -1,0 +1,93 @@
+{
+  "name": "final6_multi_heli_60s",
+  "description": "다중 헬기 작전 60초 (강도 변화, 밀도 유지)",
+  "duration": 60,
+  "effects": {
+    "rain": {
+      "file": "Rain_and_Thunderstorm_sound.mp3",
+      "type": "continuous",
+      "volume": 0.25,
+      "fade_in": 2.0,
+      "fade_out": 2.0
+    },
+    "trench": {
+      "file": "WW1_Trench+Rain.mp3",
+      "type": "continuous",
+      "volume": 0.3,
+      "fade_in": 2.0,
+      "fade_out": 2.0
+    },
+    "gunfire_phase1": {
+      "file": "War Zone Ambience Sound Effect.mp3",
+      "type": "impulse",
+      "volume": 0.35,
+      "timings": [3.0, 7.0, 11.0, 15.0, 19.0]
+    },
+    "gunfire_phase2": {
+      "file": "War Zone Ambience Sound Effect.mp3",
+      "type": "impulse",
+      "volume": 0.45,
+      "timings": [24.0, 28.0, 32.0, 36.0, 40.0]
+    },
+    "gunfire_phase3": {
+      "file": "War Zone Ambience Sound Effect.mp3",
+      "type": "impulse",
+      "volume": 0.5,
+      "timings": [44.0, 47.0, 50.0, 53.0, 56.0, 59.0]
+    },
+    "heli1": {
+      "file": "Apache_helicopter.mp3",
+      "type": "segment",
+      "start": 8.0,
+      "duration": 12.0,
+      "volume": 0.32,
+      "fade_in": 3.5,
+      "fade_out": 2.5
+    },
+    "heli2": {
+      "file": "Apache_helicopter.mp3",
+      "type": "segment",
+      "start": 18.0,
+      "duration": 15.0,
+      "volume": 0.38,
+      "fade_in": 4.0,
+      "fade_out": 3.0
+    },
+    "heli3": {
+      "file": "Apache_helicopter.mp3",
+      "type": "segment",
+      "start": 30.0,
+      "duration": 18.0,
+      "volume": 0.42,
+      "fade_in": 5.0,
+      "fade_out": 4.0
+    },
+    "heli4": {
+      "file": "Apache_helicopter.mp3",
+      "type": "segment",
+      "start": 45.0,
+      "duration": 13.0,
+      "volume": 0.40,
+      "fade_in": 3.0,
+      "fade_out": 3.5
+    },
+    "bomb_early": {
+      "file": "Bomb sound.mp3",
+      "type": "impulse",
+      "volume": 0.48,
+      "timings": [13.0, 22.0]
+    },
+    "bomb_mid": {
+      "file": "Bomb sound.mp3",
+      "type": "impulse",
+      "volume": 0.55,
+      "timings": [31.0, 38.0, 43.0]
+    },
+    "bomb_climax": {
+      "file": "Bomb sound.mp3",
+      "type": "impulse",
+      "volume": 0.62,
+      "timings": [49.0, 54.0, 58.0]
+    }
+  }
+}

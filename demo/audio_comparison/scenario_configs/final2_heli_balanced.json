@@ -1,0 +1,29 @@
+{
+  "name": "final2_heli_balanced",
+  "description": "헬기 지원 밸런스 조정 (헬기 볼륨 감소)",
+  "duration": 20,
+  "effects": {
+    "rain": {
+      "file": "Rain_and_Thunderstorm_sound.mp3",
+      "type": "continuous",
+      "volume": 0.35,
+      "fade_in": 0.5,
+      "fade_out": 0.5
+    },
+    "gunfire": {
+      "file": "War Zone Ambience Sound Effect.mp3",
+      "type": "impulse",
+      "volume": 0.55,
+      "timings": [3.0, 8.0, 14.0]
+    },
+    "helicopter": {
+      "file": "Apache_helicopter.mp3",
+      "type": "segment",
+      "start": 5.0,
+      "duration": 10.0,
+      "volume": 0.35,
+      "fade_in": 2.5,
+      "fade_out": 2.5
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "name": "final5_complete_warzone",
+  "description": "종합 전장 시나리오 (모든 요소 최적 믹싱)",
+  "duration": 20,
+  "effects": {
+    "rain": {
+      "file": "Rain_and_Thunderstorm_sound.mp3",
+      "type": "continuous",
+      "volume": 0.25,
+      "fade_in": 1.0,
+      "fade_out": 1.0
+    },
+    "base_combat": {
+      "file": "Ukraine_War_in_Winter.mp3",
+      "type": "continuous",
+      "volume": 0.4,
+      "fade_in": 1.0,
+      "fade_out": 1.0
+    },
+    "trench": {
+      "file": "WW1_Trench+Rain.mp3",
+      "type": "continuous",
+      "volume": 0.2,
+      "fade_in": 1.0,
+      "fade_out": 1.0
+    },
+    "gunfire": {
+      "file": "War Zone Ambience Sound Effect.mp3",
+      "type": "impulse",
+      "volume": 0.45,
+      "timings": [2.5, 5.5, 9.0, 13.0, 16.5]
+    },
+    "helicopter": {
+      "file": "Apache_helicopter.mp3",
+      "type": "segment",
+      "start": 6.0,
+      "duration": 12.0,
+      "volume": 0.38,
+      "fade_in": 4.0,
+      "fade_out": 3.5
+    },
+    "explosion": {
+      "file": "Bomb sound.mp3",
+      "type": "impulse",
+      "volume": 0.5,
+      "timings": [7.0, 13.0, 18.0]
+    }
+  }
+}

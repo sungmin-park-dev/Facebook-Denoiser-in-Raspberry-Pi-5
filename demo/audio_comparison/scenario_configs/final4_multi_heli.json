@@ -1,0 +1,51 @@
+{
+  "name": "final4_multi_heli",
+  "description": "다중 헬기 작전 (헬기 여러 대)",
+  "duration": 20,
+  "effects": {
+    "rain": {
+      "file": "Rain_and_Thunderstorm_sound.mp3",
+      "type": "continuous",
+      "volume": 0.25,
+      "fade_in": 1.0,
+      "fade_out": 1.0
+    },
+    "trench": {
+      "file": "WW1_Trench+Rain.mp3",
+      "type": "continuous",
+      "volume": 0.3,
+      "fade_in": 1.0,
+      "fade_out": 1.0
+    },
+    "gunfire": {
+      "file": "War Zone Ambience Sound Effect.mp3",
+      "type": "impulse",
+      "volume": 0.75,
+      "timings": [2.5, 4.0, 5.0, 7.5, 10.0, 11.0, 14.0, 15.5, 17.0]
+    },
+    "heli1": {
+      "file": "Apache_helicopter.mp3",
+      "type": "segment",
+      "start": 2.0,
+      "duration": 8.0,
+      "volume": 0.4,
+      "fade_in": 3.0,
+      "fade_out": 2.0
+    },
+    "heli2": {
+      "file": "Apache_helicopter.mp3",
+      "type": "segment",
+      "start": 8.0,
+      "duration": 10.0,
+      "volume": 0.4,
+      "fade_in": 3.5,
+      "fade_out": 3.0
+    },
+    "bomb": {
+      "file": "Bomb sound.mp3",
+      "type": "impulse",
+      "volume": 0.45,
+      "timings": [7.0, 14.5, 15.0]
+    }
+  }
+}

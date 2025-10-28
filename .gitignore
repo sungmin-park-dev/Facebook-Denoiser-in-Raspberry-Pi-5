@@ -103,3 +103,23 @@ models/debug_*/
 
 # Audio samples (Task A test files)
 audio_samples/
+
+# Audio comparison samples (large files)
+demo/audio_comparison/samples/sound_effects/*.mp3
+demo/audio_comparison/samples/sound_effects/*.wav
+demo/audio_comparison/samples/clean_speech/*.wav
+demo/audio_comparison/samples/clean_speech/*.mp3
+demo/audio_comparison/samples/noisy/*.wav
+demo/audio_comparison/samples/classical/*.wav
+demo/audio_comparison/samples/denoiser/*.wav
+demo/audio_comparison/samples/final_combat/*.wav
+demo/audio_comparison/samples/preview/*.wav
+
+# Keep directory structure
+!demo/audio_comparison/samples/sound_effects/.gitkeep
+!demo/audio_comparison/samples/clean_speech/.gitkeep
+!demo/audio_comparison/samples/noisy/.gitkeep
+!demo/audio_comparison/samples/classical/.gitkeep
+!demo/audio_comparison/samples/denoiser/.gitkeep
+!demo/audio_comparison/samples/final_combat/.gitkeep
+!demo/audio_comparison/samples/preview/.gitkeep

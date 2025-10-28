@@ -1,0 +1,67 @@
+{
+  "name": "final7_complete_warzone_60s",
+  "description": "종합 전장 시나리오 60초 (점진적 고조)",
+  "duration": 60,
+  "effects": {
+    "rain": {
+      "file": "Rain_and_Thunderstorm_sound.mp3",
+      "type": "continuous",
+      "volume": 0.22,
+      "fade_in": 2.0,
+      "fade_out": 2.0
+    },
+    "base_combat": {
+      "file": "Ukraine_War_in_Winter.mp3",
+      "type": "continuous",
+      "volume": 0.38,
+      "fade_in": 2.0,
+      "fade_out": 2.0
+    },
+    "trench": {
+      "file": "WW1_Trench+Rain.mp3",
+      "type": "continuous",
+      "volume": 0.25,
+      "fade_in": 2.0,
+      "fade_out": 2.0
+    },
+    "gunfire_sparse": {
+      "file": "War Zone Ambience Sound Effect.mp3",
+      "type": "impulse",
+      "volume": 0.38,
+      "timings": [4.0, 9.0, 14.0, 20.0, 26.0]
+    },
+    "gunfire_intense": {
+      "file": "War Zone Ambience Sound Effect.mp3",
+      "type": "impulse",
+      "volume": 0.48,
+      "timings": [33.0, 37.0, 41.0, 45.0, 49.0, 52.0, 55.0, 58.0]
+    },
+    "helicopter_long": {
+      "file": "Apache_helicopter.mp3",
+      "type": "segment",
+      "start": 15.0,
+      "duration": 38.0,
+      "volume": 0.40,
+      "fade_in": 6.0,
+      "fade_out": 5.0
+    },
+    "explosion_phase1": {
+      "file": "Bomb sound.mp3",
+      "type": "impulse",
+      "volume": 0.50,
+      "timings": [11.0, 23.0]
+    },
+    "explosion_phase2": {
+      "file": "Bomb sound.mp3",
+      "type": "impulse",
+      "volume": 0.58,
+      "timings": [35.0, 42.0, 47.0]
+    },
+    "explosion_finale": {
+      "file": "Bomb sound.mp3",
+      "type": "impulse",
+      "volume": 0.65,
+      "timings": [53.0, 57.0]
+    }
+  }
+}
