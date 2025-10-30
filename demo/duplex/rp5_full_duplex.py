@@ -128,6 +128,17 @@ class FullDuplexComm:
         try:
             # Convert stereo to mono (average both channels)
             mono = indata.mean(axis=1, keepdims=True)
+            
+            # DEBUG: Show input level every 50 frames
+            if hasattr(self, '_mic_frame_count'):
+                self._mic_frame_count += 1
+            else:
+                self._mic_frame_count = 0
+            
+            if self._mic_frame_count % 50 == 0:
+                level = np.abs(mono).max()
+                print(f"🎤 Mic level: {level:.4f} (avg: {np.abs(mono).mean():.4f})")
+            
             self.send_queue.put(mono, block=False)
         except queue.Full:
             pass  # Drop frame if queue full
@@ -140,7 +151,19 @@ class FullDuplexComm:
         try:
             mono_data = self.recv_queue.get(block=False)
             # Convert mono to stereo (duplicate to both channels)
-            outdata[:] = np.repeat(mono_data, 2, axis=1)
+            stereo_data = np.repeat(mono_data, 2, axis=1)
+            
+            # DEBUG: Show output level every 50 frames
+            if hasattr(self, '_speaker_frame_count'):
+                self._speaker_frame_count += 1
+            else:
+                self._speaker_frame_count = 0
+            
+            if self._speaker_frame_count % 50 == 0:
+                level = np.abs(stereo_data).max()
+                print(f"🔊 Speaker level: {level:.4f} (avg: {np.abs(stereo_data).mean():.4f})")
+            
+            outdata[:] = stereo_data
         except queue.Empty:
             outdata.fill(0)  # Silence if no data
     
@@ -172,10 +195,20 @@ class FullDuplexComm:
                     with torch.no_grad():
                         # Flatten to 1D if needed (handle 2D resampling output)
                         audio_16k_flat = audio_16k.flatten() if audio_16k.ndim > 1 else audio_16k
+                        
+                        # DEBUG: Level before AI
+                        level_before = np.abs(audio_16k_flat).max()
+                        
                         # Shape: [batch=1, channels=1, time]
                         audio_tensor = torch.from_numpy(audio_16k_flat).float().unsqueeze(0).unsqueeze(0)
                         denoised = self.denoiser(audio_tensor)
                         audio_denoised = denoised.squeeze().cpu().numpy()
+                        
+                        # DEBUG: Level after AI
+                        level_after = np.abs(audio_denoised).max()
+                        
+                        if self.packets_sent % 50 == 0:
+                            print(f"🤖 AI: Before={level_before:.4f}, After={level_after:.4f}")
                     
                     # Opus encode
                     audio_int16 = np.clip(audio_denoised * 32767, -32768, 32767).astype(np.int16)
@@ -215,6 +248,11 @@ class FullDuplexComm:
                     # Opus decode
                     audio_int16 = self.codec.decode(data)
                     audio_16k = audio_int16.astype(np.float32) / 32767.0
+                    
+                    # DEBUG: Level after decode
+                    if self.packets_received % 50 == 0:
+                        level = np.abs(audio_16k).max()
+                        print(f"📥 Decoded level: {level:.4f}")
                     
                     # Upsample 16kHz → 48kHz
                     num_samples_48k = int(len(audio_16k) * resample_ratio)
