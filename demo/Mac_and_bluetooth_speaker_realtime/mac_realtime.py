@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 
 # 프로젝트 루트 경로 추가 (demo/Mac_and_bluetooth_speaker_realtime/ → 프로젝트 루트)
+
 ROOT = Path(__file__).parent.parent.parent  
 sys.path.insert(0, str(ROOT))
 
@@ -95,6 +96,7 @@ class RealtimeDenoiser:
     def _select_model(self):
         """모델 선택"""
         print("\n" + "="*50)
+    
         print("🤖 Available Models:")
         print("="*50)
         

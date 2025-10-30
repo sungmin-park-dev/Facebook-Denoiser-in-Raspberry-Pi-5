@@ -109,11 +109,13 @@ demo/audio_comparison/samples/sound_effects/*.mp3
 demo/audio_comparison/samples/sound_effects/*.wav
 demo/audio_comparison/samples/clean_speech/*.wav
 demo/audio_comparison/samples/clean_speech/*.mp3
+demo/audio_comparison/samples/clean_speech/*.m4a
 demo/audio_comparison/samples/noisy/*.wav
 demo/audio_comparison/samples/classical/*.wav
 demo/audio_comparison/samples/denoiser/*.wav
 demo/audio_comparison/samples/final_combat/*.wav
 demo/audio_comparison/samples/preview/*.wav
+
 
 # Keep directory structure
 !demo/audio_comparison/samples/sound_effects/.gitkeep

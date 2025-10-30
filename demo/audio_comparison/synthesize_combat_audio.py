@@ -323,7 +323,7 @@ if __name__ == "__main__":
     # 10 dB: 중간 난이도 (추천)
     # 5 dB: 매우 어려움 (노이즈가 매우 큼)
     # 15 dB: 쉬움 (노이즈가 작음)
-    TARGET_SNR_DB = 3
+    TARGET_SNR_DB = 1
     
     # 4. 효과음 디렉토리 (보통 그대로)
     EFFECTS_DIR = "demo/audio_comparison/samples/sound_effects"
