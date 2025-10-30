@@ -4,8 +4,8 @@
 
 role: A
 peer_ip: 10.42.0.224
-mic_device: 1          # 5 → 1
-speaker_device: 1      # 5 → 1
-send_port: 9998
-recv_port: 9999
+mic_device: 1
+speaker_device: 1
+send_port: 9999  # 9998 → 9999 (B의 recv_port로!)
+recv_port: 9998  # 9999 → 9998 (B의 send_port에서!)
 model: Light-32-Depth4
