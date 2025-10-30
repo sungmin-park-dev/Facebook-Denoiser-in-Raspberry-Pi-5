@@ -3,9 +3,9 @@
 # RP5-B acts as Client (10.42.0.224)
 
 role: B
-peer_ip: 10.42.0.1     # RP5-A IP
-mic_device: 5          # Default
-speaker_device: 1      # H08A USB Audio
+peer_ip: 10.42.0.1
+mic_device: 1          # 5 → 1
+speaker_device: 1      # 이미 1 (그대로)
 send_port: 9998
 recv_port: 9999
 model: Light-32-Depth4

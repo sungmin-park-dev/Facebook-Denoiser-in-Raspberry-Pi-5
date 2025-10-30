@@ -4,11 +4,18 @@ RP5 Full-Duplex Audio Communication
 Simultaneous bidirectional audio with AI denoising
 
 Usage:
-    # RP5-A (Role A)
-    python scripts/rp5_full_duplex.py --role A --peer-ip 10.42.0.2 --mic-device 5 --speaker-device 5
+    # RP5-A (Role A) - Recommended: Use config file
+    python demo/duplex/rp5_full_duplex.py --config demo/duplex/configs/rp5a_config.yaml
     
-    # RP5-B (Role B)
-    python scripts/rp5_full_duplex.py --role B --peer-ip 10.42.0.1 --mic-device 1 --speaker-device 1
+    # RP5-B (Role B) - Recommended: Use config file
+    python demo/duplex/rp5_full_duplex.py --config demo/duplex/configs/rp5b_config.yaml
+    
+    # Alternative: Manual parameters
+    # RP5-A
+    python demo/duplex/rp5_full_duplex.py --role A --peer-ip 10.42.0.224 --mic-device 1 --speaker-device 1
+    
+    # RP5-B
+    python demo/duplex/rp5_full_duplex.py --role B --peer-ip 10.42.0.1 --mic-device 1 --speaker-device 1
 """
 
 import argparse
@@ -119,7 +126,9 @@ class FullDuplexComm:
             print(f"⚠️ Mic status: {status}")
         
         try:
-            self.send_queue.put(indata.copy(), block=False)
+            # Convert stereo to mono (average both channels)
+            mono = indata.mean(axis=1, keepdims=True)
+            self.send_queue.put(mono, block=False)
         except queue.Full:
             pass  # Drop frame if queue full
     
@@ -129,7 +138,9 @@ class FullDuplexComm:
             print(f"⚠️ Speaker status: {status}")
         
         try:
-            outdata[:] = self.recv_queue.get(block=False)
+            mono_data = self.recv_queue.get(block=False)
+            # Convert mono to stereo (duplicate to both channels)
+            outdata[:] = np.repeat(mono_data, 2, axis=1)
         except queue.Empty:
             outdata.fill(0)  # Silence if no data
     
@@ -142,7 +153,7 @@ class FullDuplexComm:
         
         with sd.InputStream(
             device=self.mic_device,
-            channels=1,
+            channels=2,  # H08A requires stereo (converted to mono in callback)
             samplerate=self.sample_rate_48k,
             blocksize=self.chunk_size_48k,
             dtype='float32',
@@ -190,7 +201,7 @@ class FullDuplexComm:
         
         with sd.OutputStream(
             device=self.speaker_device,
-            channels=1,
+            channels=2,  # H08A requires stereo (mono expanded in callback)
             samplerate=self.sample_rate_48k,
             blocksize=self.chunk_size_48k,
             dtype='float32',
