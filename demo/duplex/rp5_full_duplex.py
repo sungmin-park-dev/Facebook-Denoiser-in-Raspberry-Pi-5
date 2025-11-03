@@ -69,13 +69,10 @@ class FullDuplexComm:
         self.mic_device = mic_device
         self.speaker_device = speaker_device
         
-        # Port assignment (A and B use opposite ports)
-        if role == 'A':
-            self.send_port = send_port
-            self.recv_port = recv_port
-        else:  # role == 'B'
-            self.send_port = recv_port  # Swap
-            self.recv_port = send_port
+        # Port assignment (use as configured in YAML)
+        # ✅ FIXED: Removed port swap logic for Role B
+        self.send_port = send_port
+        self.recv_port = recv_port
         
         # Audio settings
         self.sample_rate_48k = 48000
@@ -137,11 +134,12 @@ class FullDuplexComm:
             
             if self._mic_frame_count % 50 == 0:
                 level = np.abs(mono).max()
-                print(f"🎤 Mic level: {level:.4f} (avg: {np.abs(mono).mean():.4f})")
+                print(f"🎤 Mic level: {level:.4f}")
             
+            # Add to send queue
             self.send_queue.put(mono, block=False)
         except queue.Full:
-            pass  # Drop frame if queue full
+            pass  # Drop if queue full
     
     def speaker_callback(self, outdata, frames, time_info, status):
         """Speaker output callback"""
@@ -149,9 +147,8 @@ class FullDuplexComm:
             print(f"⚠️ Speaker status: {status}")
         
         try:
-            mono_data = self.recv_queue.get(block=False)
-            # Convert mono to stereo (duplicate to both channels)
-            stereo_data = np.repeat(mono_data, 2, axis=1)
+            # Get from receive queue
+            mono_data = self.recv_queue.get_nowait()
             
             # DEBUG: Show output level every 50 frames
             if hasattr(self, '_speaker_frame_count'):
@@ -160,31 +157,30 @@ class FullDuplexComm:
                 self._speaker_frame_count = 0
             
             if self._speaker_frame_count % 50 == 0:
-                level = np.abs(stereo_data).max()
-                print(f"🔊 Speaker level: {level:.4f} (avg: {np.abs(stereo_data).mean():.4f})")
+                level = np.abs(mono_data).max()
+                print(f"🔊 Speaker level: {level:.4f}")
             
-            outdata[:] = stereo_data
+            # Convert mono to stereo (duplicate channel)
+            outdata[:] = np.repeat(mono_data, 2, axis=1)
         except queue.Empty:
             outdata.fill(0)  # Silence if no data
     
     def send_thread(self):
-        """Sending thread: Mic → AI → Encode → UDP"""
-        print("📤 Send thread started")
-        
-        # Resampler (48kHz → 16kHz)
+        """Audio sending thread (Mic → AI → Opus → UDP)"""
         resample_ratio = self.sample_rate_16k / self.sample_rate_48k
         
         with sd.InputStream(
             device=self.mic_device,
-            channels=2,  # H08A requires stereo (converted to mono in callback)
+            channels=2,  # H08A is stereo
             samplerate=self.sample_rate_48k,
             blocksize=self.chunk_size_48k,
-            dtype='float32',
             callback=self.mic_callback
         ):
+            print("🎤 Microphone started")
+            
             while self.running:
                 try:
-                    # Get audio from mic
+                    # Get audio from mic queue
                     audio_48k = self.send_queue.get(timeout=0.1)
                     
                     # Downsample 48kHz → 16kHz
@@ -193,53 +189,51 @@ class FullDuplexComm:
                     
                     # AI Denoising
                     with torch.no_grad():
-                        # Flatten to 1D if needed (handle 2D resampling output)
-                        audio_16k_flat = audio_16k.flatten() if audio_16k.ndim > 1 else audio_16k
+                        audio_torch = torch.from_numpy(audio_16k.T).float().unsqueeze(0)
                         
                         # DEBUG: Level before AI
-                        level_before = np.abs(audio_16k_flat).max()
+                        if self.packets_sent % 50 == 0:
+                            level_before = audio_torch.abs().max().item()
+                            print(f"🤖 AI: Before={level_before:.4f}", end=" ")
                         
-                        # Shape: [batch=1, channels=1, time]
-                        audio_tensor = torch.from_numpy(audio_16k_flat).float().unsqueeze(0).unsqueeze(0)
-                        denoised = self.denoiser(audio_tensor)
-                        audio_denoised = denoised.squeeze().cpu().numpy()
+                        denoised = self.denoiser(audio_torch)
                         
                         # DEBUG: Level after AI
-                        level_after = np.abs(audio_denoised).max()
-                        
                         if self.packets_sent % 50 == 0:
-                            print(f"🤖 AI: Before={level_before:.4f}, After={level_after:.4f}")
+                            level_after = denoised.abs().max().item()
+                            print(f"After={level_after:.4f}")
+                        
+                        audio_16k_clean = denoised.squeeze(0).T.numpy()
                     
                     # Opus encode
-                    audio_int16 = np.clip(audio_denoised * 32767, -32768, 32767).astype(np.int16)
-                    encoded = self.codec.encode(audio_int16)
+                    audio_int16 = (audio_16k_clean * 32767).astype(np.int16)
+                    packet = self.codec.encode(audio_int16)
                     
                     # UDP send
-                    self.send_socket.sendto(encoded, (self.peer_ip, self.send_port))
+                    self.send_socket.sendto(packet, (self.peer_ip, self.send_port))
                     self.packets_sent += 1
                     
                 except queue.Empty:
                     continue
                 except Exception as e:
-                    print(f"❌ Send error: {e}")
+                    if self.running:
+                        print(f"❌ Send error: {e}")
         
-        print("📤 Send thread stopped")
+        print("🎤 Microphone stopped")
     
     def recv_thread(self):
-        """Receiving thread: UDP → Decode → Upsample → Speaker"""
-        print("📥 Receive thread started")
-        
-        # Resampler (16kHz → 48kHz)
+        """Audio receiving thread (UDP → Opus → Speaker)"""
         resample_ratio = self.sample_rate_48k / self.sample_rate_16k
         
         with sd.OutputStream(
             device=self.speaker_device,
-            channels=2,  # H08A requires stereo (mono expanded in callback)
+            channels=2,  # H08A is stereo
             samplerate=self.sample_rate_48k,
             blocksize=self.chunk_size_48k,
-            dtype='float32',
             callback=self.speaker_callback
         ):
+            print("🔊 Speaker started")
+            
             while self.running:
                 try:
                     # UDP receive
@@ -279,6 +273,8 @@ class FullDuplexComm:
             if self.running:
                 elapsed = time.time() - self.start_time
                 print(f"📊 Sent: {self.packets_sent}, Recv: {self.packets_received} ({elapsed:.1f}s)")
+                print(f"   Send rate: {self.packets_sent/elapsed:.1f} packets/s")
+                print(f"   Recv rate: {self.packets_received/elapsed:.1f} packets/s")
     
     def run(self):
         """Start full-duplex communication"""
