@@ -1,0 +1,51 @@
+{
+  "name": "audio_sample_3second",
+  "description": "지상전 다중 헬기 및 폭음",
+  "duration": 5,
+  "effects": {
+    "rain": {
+      "file": "Rain_and_Thunderstorm_sound.mp3",
+      "type": "continuous",
+      "volume": 0.35,
+      "fade_in": 0.75,
+      "fade_out": 0.75
+    },
+    "trench": {
+      "file": "WW1_Trench+Rain.mp3",
+      "type": "continuous",
+      "volume": 0.45,
+      "fade_in": 1.0,
+      "fade_out": 1.0
+    },
+    "gunfire": {
+      "file": "War Zone Ambience Sound Effect.mp3",
+      "type": "impulse",
+      "volume": 0.75,
+      "timings": [1.0, 2.2, 2.8]
+    },
+    "heli1": {
+      "file": "Apache_helicopter.mp3",
+      "type": "segment",
+      "start": 0.5,
+      "duration": 8.0,
+      "volume": 0.5,
+      "fade_in": 3.0,
+      "fade_out": 2.0
+    },
+    "heli2": {
+      "file": "Apache_helicopter.mp3",
+      "type": "segment",
+      "start": 1.8,
+      "duration": 10.0,
+      "volume": 0.4,
+      "fade_in": 3.5,
+      "fade_out": 3.0
+    },
+    "bomb": {
+      "file": "Bomb sound.mp3",
+      "type": "impulse",
+      "volume": 0.45,
+      "timings": [1.0, 2.2, 2.8]
+    }
+  }
+}
