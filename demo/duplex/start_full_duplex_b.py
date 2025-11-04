@@ -41,6 +41,86 @@ def run_cmd(cmd, check=True, capture=True):
             sys.exit(1)
         return None
 
+def select_audio_device(device_type="mic"):
+    """Interactive audio device selection"""
+    import sounddevice as sd
+    
+    print(f"\n{Colors.CYAN}{'='*60}{Colors.NC}")
+    if device_type == "mic":
+        print(f"{Colors.CYAN}🎤 Available Microphone Devices:{Colors.NC}")
+    else:
+        print(f"{Colors.CYAN}🔊 Available Speaker Devices:{Colors.NC}")
+    print(f"{Colors.CYAN}{'='*60}{Colors.NC}")
+    
+    devices = sd.query_devices()
+    valid_devices = []
+    
+    for i, device in enumerate(devices):
+        in_ch = device['max_input_channels']
+        out_ch = device['max_output_channels']
+        
+        # Filter based on device type
+        if device_type == "mic" and in_ch > 0:
+            print(f"[{i}] {device['name']}")
+            print(f"    Input: {in_ch} ch, Sample Rate: {device['default_samplerate']:.0f} Hz")
+            
+            # Highlight H08A or USB devices
+            if 'H08A' in device['name'] or 'USB' in device['name']:
+                print(f"    └─ 🎯 Recommended device!")
+            
+            valid_devices.append(i)
+            
+        elif device_type == "speaker" and out_ch > 0:
+            print(f"[{i}] {device['name']}")
+            print(f"    Output: {out_ch} ch, Sample Rate: {device['default_samplerate']:.0f} Hz")
+            
+            # Highlight H08A or USB devices
+            if 'H08A' in device['name'] or 'USB' in device['name']:
+                print(f"    └─ 🎯 Recommended device!")
+            
+            valid_devices.append(i)
+    
+    print(f"{Colors.CYAN}{'='*60}{Colors.NC}")
+    
+    # Get user selection
+    while True:
+        try:
+            choice = input(f"{Colors.YELLOW}Select {device_type} device number: {Colors.NC}").strip()
+            device_num = int(choice)
+            
+            if device_num in valid_devices:
+                device_info = devices[device_num]
+                print(f"{Colors.GREEN}✅ Selected: [{device_num}] {device_info['name']}{Colors.NC}")
+                return device_num
+            else:
+                print(f"{Colors.RED}❌ Invalid device number. Please choose from the list.{Colors.NC}")
+                
+        except ValueError:
+            print(f"{Colors.RED}❌ Please enter a valid number.{Colors.NC}")
+        except KeyboardInterrupt:
+            print(f"\n{Colors.YELLOW}🛑 Selection cancelled{Colors.NC}")
+            sys.exit(0)
+        except Exception as e:
+            print(f"{Colors.RED}❌ Error: {e}{Colors.NC}")
+
+def setup_audio_devices(config):
+    """Setup audio devices - interactive if None, otherwise use config"""
+    if config['mic_device'] is None:
+        print(f"\n{Colors.YELLOW}🎤 Microphone device not configured{Colors.NC}")
+        config['mic_device'] = select_audio_device("mic")
+        print()
+    else:
+        print(f"{Colors.GREEN}✅ Using configured mic device: {config['mic_device']}{Colors.NC}")
+    
+    if config['speaker_device'] is None:
+        print(f"{Colors.YELLOW}🔊 Speaker device not configured{Colors.NC}")
+        config['speaker_device'] = select_audio_device("speaker")
+        print()
+    else:
+        print(f"{Colors.GREEN}✅ Using configured speaker device: {config['speaker_device']}{Colors.NC}")
+    
+    return config
+
 def check_wifi_direct(config):
     """Check WiFi Direct connection"""
     print(f"{Colors.YELLOW}📡 Checking WiFi Direct connection...{Colors.NC}")
@@ -136,10 +216,17 @@ def run_full_duplex(config):
     project_dir = os.path.expanduser(config['project_dir'])
     venv_python = os.path.join(project_dir, f"{config['venv']}/bin/python")
     script_path = os.path.join(project_dir, "demo/duplex/rp5_full_duplex.py")
-    config_path = os.path.join(project_dir, config['config_file'])
     
-    # Run with venv python
-    cmd = f'{venv_python} {script_path} --config {config_path}'
+    # Build command with explicit parameters
+    cmd = (
+        f'{venv_python} {script_path} '
+        f'--role {config["role"]} '
+        f'--peer-ip {config["peer_ip"]} '
+        f'--mic-device {config["mic_device"]} '
+        f'--speaker-device {config["speaker_device"]} '
+        f'--send-port {config["send_port"]} '
+        f'--recv-port {config["recv_port"]}'
+    )
     
     try:
         subprocess.run(cmd, shell=True, check=True)
@@ -170,7 +257,11 @@ def main(role, config):
         activate_venv(config)
         print()
         
-        # 4. Run full-duplex
+        # 4. Setup audio devices (interactive if None)
+        config = setup_audio_devices(config)
+        print()
+        
+        # 5. Run full-duplex
         run_full_duplex(config)
         
     except KeyboardInterrupt:
@@ -188,7 +279,6 @@ def main(role, config):
 # 🎯 RP5-B CONFIGURATION
 # ============================================================
 if __name__ == "__main__":
-    # Role B configuration
     ROLE = "B"
     CONFIG = {
         "role": "B",
@@ -196,11 +286,11 @@ if __name__ == "__main__":
         "venv": "venv_denoiser",
         "peer_ip": "10.42.0.1",
         "my_ip": "10.42.0.224",
-        "mic_device": 1,
-        "speaker_device": 1,
-        "send_port": 9998,  # Send to A:9998
-        "recv_port": 9999,  # Receive from A:9999
-        "wifi_mode": "client",  # B is client
+        "mic_device": None,      # None = 대화형 선택, 숫자 = 자동 진행
+        "speaker_device": None,  # None = 대화형 선택, 숫자 = 자동 진행
+        "send_port": 9998,
+        "recv_port": 9999,
+        "wifi_mode": "client",
         "wifi_ssid": "RP5-Direct",
         "wifi_password": "tactical123",
         "config_file": "demo/duplex/configs/rp5b_config.yaml",
