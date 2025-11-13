@@ -1,21 +1,10 @@
 """
-RP5 Full-Duplex Audio Communication
+RP5 Full-Duplex Audio Communication - Improved Output Version
 
-Simultaneous bidirectional audio with AI denoising
-
-Usage:
-    # RP5-A (Role A) - Recommended: Use config file
-    python demo/duplex/rp5_full_duplex.py --config demo/duplex/configs/rp5a_config.yaml
-    
-    # RP5-B (Role B) - Recommended: Use config file
-    python demo/duplex/rp5_full_duplex.py --config demo/duplex/configs/rp5b_config.yaml
-    
-    # Alternative: Manual parameters
-    # RP5-A
-    python demo/duplex/rp5_full_duplex.py --role A --peer-ip 10.42.0.224 --mic-device 1 --speaker-device 1
-    
-    # RP5-B
-    python demo/duplex/rp5_full_duplex.py --role B --peer-ip 10.42.0.1 --mic-device 1 --speaker-device 1
+Changelog:
+- Dynamic updates for audio levels and stats (single line refresh)
+- Static output for important events only
+- Cleaner terminal output
 """
 
 import argparse
@@ -52,25 +41,13 @@ class FullDuplexComm:
         recv_port: int = 9999,
         model_name: str = "Light-32-Depth4"
     ):
-        """
-        Initialize full-duplex communication
-        
-        Args:
-            role: 'A' or 'B'
-            peer_ip: Peer RP5 IP address
-            mic_device: Microphone device index
-            speaker_device: Speaker device index
-            send_port: UDP sending port
-            recv_port: UDP receiving port
-            model_name: AI denoiser model name
-        """
+        """Initialize full-duplex communication"""
         self.role = role
         self.peer_ip = peer_ip
         self.mic_device = mic_device
         self.speaker_device = speaker_device
         
         # Port assignment (use as configured in YAML)
-        # ✅ FIXED: Removed port swap logic for Role B
         self.send_port = send_port
         self.recv_port = recv_port
         
@@ -100,7 +77,7 @@ class FullDuplexComm:
         self.denoiser.eval()
         
         # Audio queues
-        self.send_queue = queue.Queue(maxsize=5)  # Smaller for lower latency
+        self.send_queue = queue.Queue(maxsize=5)
         self.recv_queue = queue.Queue(maxsize=5)
         
         # Stats
@@ -108,6 +85,13 @@ class FullDuplexComm:
         self.packets_received = 0
         self.start_time = None
         self.running = True
+        
+        # Audio levels for display
+        self.mic_level = 0.0
+        self.ai_before = 0.0
+        self.ai_after = 0.0
+        self.decoded_level = 0.0
+        self.speaker_level = 0.0
         
         print(f"✅ FullDuplexComm initialized (Role {role}):")
         print(f"   Peer: {peer_ip}")
@@ -120,58 +104,44 @@ class FullDuplexComm:
     def mic_callback(self, indata, frames, time_info, status):
         """Microphone input callback"""
         if status:
-            print(f"⚠️ Mic status: {status}")
+            print(f"\n⚠️ Mic status: {status}")
         
         try:
-            # Convert stereo to mono (average both channels)
+            # Convert stereo to mono
             mono = indata.mean(axis=1, keepdims=True)
             
-            # DEBUG: Show input level every 50 frames
-            if hasattr(self, '_mic_frame_count'):
-                self._mic_frame_count += 1
-            else:
-                self._mic_frame_count = 0
-            
-            if self._mic_frame_count % 50 == 0:
-                level = np.abs(mono).max()
-                print(f"🎤 Mic level: {level:.4f}")
+            # Update level
+            self.mic_level = np.abs(mono).max()
             
             # Add to send queue
             self.send_queue.put(mono, block=False)
         except queue.Full:
-            pass  # Drop if queue full
+            pass
     
     def speaker_callback(self, outdata, frames, time_info, status):
         """Speaker output callback"""
         if status:
-            print(f"⚠️ Speaker status: {status}")
+            print(f"\n⚠️ Speaker status: {status}")
         
         try:
             # Get from receive queue
             mono_data = self.recv_queue.get_nowait()
             
-            # DEBUG: Show output level every 50 frames
-            if hasattr(self, '_speaker_frame_count'):
-                self._speaker_frame_count += 1
-            else:
-                self._speaker_frame_count = 0
+            # Update level
+            self.speaker_level = np.abs(mono_data).max()
             
-            if self._speaker_frame_count % 50 == 0:
-                level = np.abs(mono_data).max()
-                print(f"🔊 Speaker level: {level:.4f}")
-            
-            # Convert mono to stereo (duplicate channel)
+            # Convert mono to stereo
             outdata[:] = np.repeat(mono_data, 2, axis=1)
         except queue.Empty:
-            outdata.fill(0)  # Silence if no data
+            outdata.fill(0)
     
     def send_thread(self):
-        """Audio sending thread (Mic → AI → Opus → UDP)"""
+        """Audio sending thread"""
         resample_ratio = self.sample_rate_16k / self.sample_rate_48k
         
         with sd.InputStream(
             device=self.mic_device,
-            channels=2,  # H08A is stereo
+            channels=2,
             samplerate=self.sample_rate_48k,
             blocksize=self.chunk_size_48k,
             callback=self.mic_callback
@@ -190,18 +160,10 @@ class FullDuplexComm:
                     # AI Denoising
                     with torch.no_grad():
                         audio_torch = torch.from_numpy(audio_16k.T).float().unsqueeze(0)
-                        
-                        # DEBUG: Level before AI
-                        if self.packets_sent % 50 == 0:
-                            level_before = audio_torch.abs().max().item()
-                            print(f"🤖 AI: Before={level_before:.4f}", end=" ")
+                        self.ai_before = audio_torch.abs().max().item()
                         
                         denoised = self.denoiser(audio_torch)
-                        
-                        # DEBUG: Level after AI
-                        if self.packets_sent % 50 == 0:
-                            level_after = denoised.abs().max().item()
-                            print(f"After={level_after:.4f}")
+                        self.ai_after = denoised.abs().max().item()
                         
                         audio_16k_clean = denoised.squeeze(0).T.numpy()
                     
@@ -217,17 +179,17 @@ class FullDuplexComm:
                     continue
                 except Exception as e:
                     if self.running:
-                        print(f"❌ Send error: {e}")
+                        print(f"\n❌ Send error: {e}")
         
-        print("🎤 Microphone stopped")
+        print("\n🎤 Microphone stopped")
     
     def recv_thread(self):
-        """Audio receiving thread (UDP → Opus → Speaker)"""
+        """Audio receiving thread"""
         resample_ratio = self.sample_rate_48k / self.sample_rate_16k
         
         with sd.OutputStream(
             device=self.speaker_device,
-            channels=2,  # H08A is stereo
+            channels=2,
             samplerate=self.sample_rate_48k,
             blocksize=self.chunk_size_48k,
             callback=self.speaker_callback
@@ -243,10 +205,8 @@ class FullDuplexComm:
                     audio_int16 = self.codec.decode(data)
                     audio_16k = audio_int16.astype(np.float32) / 32767.0
                     
-                    # DEBUG: Level after decode
-                    if self.packets_received % 50 == 0:
-                        level = np.abs(audio_16k).max()
-                        print(f"📥 Decoded level: {level:.4f}")
+                    # Update level
+                    self.decoded_level = np.abs(audio_16k).max()
                     
                     # Upsample 16kHz → 48kHz
                     num_samples_48k = int(len(audio_16k) * resample_ratio)
@@ -259,22 +219,41 @@ class FullDuplexComm:
                 except socket.timeout:
                     continue
                 except queue.Full:
-                    pass  # Drop if queue full
+                    pass
                 except Exception as e:
                     if self.running:
-                        print(f"❌ Receive error: {e}")
+                        print(f"\n❌ Receive error: {e}")
         
-        print("📥 Receive thread stopped")
+        print("\n📥 Receive thread stopped")
     
     def stats_thread(self):
-        """Statistics reporting thread"""
+        """Statistics reporting thread with dynamic updates"""
+        last_update = time.time()
+        
         while self.running:
-            time.sleep(5)
-            if self.running:
-                elapsed = time.time() - self.start_time
-                print(f"📊 Sent: {self.packets_sent}, Recv: {self.packets_received} ({elapsed:.1f}s)")
-                print(f"   Send rate: {self.packets_sent/elapsed:.1f} packets/s")
-                print(f"   Recv rate: {self.packets_received/elapsed:.1f} packets/s")
+            current_time = time.time()
+            
+            # Update every 0.5 seconds
+            if current_time - last_update >= 0.5:
+                elapsed = current_time - self.start_time
+                send_rate = self.packets_sent / elapsed if elapsed > 0 else 0
+                recv_rate = self.packets_received / elapsed if elapsed > 0 else 0
+                
+                # Single line dynamic update
+                status = (
+                    f"\r📊 TX: {self.packets_sent:5d} ({send_rate:4.1f} pkt/s) | "
+                    f"RX: {self.packets_received:5d} ({recv_rate:4.1f} pkt/s) | "
+                    f"🎤 {self.mic_level:.3f} | "
+                    f"🤖 {self.ai_before:.3f}→{self.ai_after:.3f} | "
+                    f"📥 {self.decoded_level:.3f} | "
+                    f"🔊 {self.speaker_level:.3f} | "
+                    f"⏱️ {elapsed:.0f}s"
+                )
+                
+                print(status, end='', flush=True)
+                last_update = current_time
+            
+            time.sleep(0.1)
     
     def run(self):
         """Start full-duplex communication"""
@@ -290,6 +269,7 @@ class FullDuplexComm:
         stats_t.start()
         
         print("\n🔄 Full-duplex communication started")
+        print("Legend: TX=Sent, RX=Received, 🎤=Mic, 🤖=AI(before→after), 📥=Decoded, 🔊=Speaker")
         print("Press Ctrl+C to stop...\n")
         
         try:
@@ -297,7 +277,7 @@ class FullDuplexComm:
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
-            print("\n🛑 Stopping...")
+            print("\n\n🛑 Stopping...")
             self.running = False
             
             # Wait for threads
@@ -306,14 +286,14 @@ class FullDuplexComm:
             
             # Print final stats
             elapsed = time.time() - self.start_time
-            print("="*60)
+            print("\n" + "="*70)
             print("📊 Session Statistics:")
             print(f"   Packets sent: {self.packets_sent}")
             print(f"   Packets received: {self.packets_received}")
             print(f"   Duration: {elapsed:.1f}s")
             print(f"   Send rate: {self.packets_sent/elapsed:.1f} packets/s")
             print(f"   Recv rate: {self.packets_received/elapsed:.1f} packets/s")
-            print("="*60)
+            print("="*70)
 
 
 def list_audio_devices():
@@ -334,7 +314,7 @@ def list_audio_devices():
 def main():
     parser = argparse.ArgumentParser(description="RP5 Full-Duplex Communication")
     parser.add_argument("--config", type=str, default=None,
-                       help="Config file path (e.g., configs/rp5a_config.yaml)")
+                       help="Config file path")
     parser.add_argument("--role", type=str, required=False, choices=['A', 'B'],
                        help="Role: A or B")
     parser.add_argument("--peer-ip", type=str, required=False,
@@ -344,9 +324,9 @@ def main():
     parser.add_argument("--speaker-device", type=int, required=False,
                        help="Speaker device index")
     parser.add_argument("--send-port", type=int, default=9998,
-                       help="UDP sending port (default: 9998)")
+                       help="UDP sending port")
     parser.add_argument("--recv-port", type=int, default=9999,
-                       help="UDP receiving port (default: 9999)")
+                       help="UDP receiving port")
     parser.add_argument("--list-devices", action="store_true",
                        help="List available audio devices and exit")
     parser.add_argument("--model", type=str, default="Light-32-Depth4",
@@ -359,7 +339,6 @@ def main():
         with open(args.config, 'r') as f:
             config = yaml.safe_load(f)
         
-        # Override with config file values (command line args take precedence)
         args.role = args.role or config.get('role')
         args.peer_ip = args.peer_ip or config.get('peer_ip')
         args.mic_device = args.mic_device if args.mic_device is not None else config.get('mic_device')
@@ -376,13 +355,13 @@ def main():
     
     # Validate required arguments
     if not args.role:
-        parser.error("--role is required (or provide via config file)")
+        parser.error("--role is required")
     if not args.peer_ip:
-        parser.error("--peer-ip is required (or provide via config file)")
+        parser.error("--peer-ip is required")
     if args.mic_device is None:
-        parser.error("--mic-device is required (or provide via config file)")
+        parser.error("--mic-device is required")
     if args.speaker_device is None:
-        parser.error("--speaker-device is required (or provide via config file)")
+        parser.error("--speaker-device is required")
     
     # Create and start full-duplex comm
     comm = FullDuplexComm(
