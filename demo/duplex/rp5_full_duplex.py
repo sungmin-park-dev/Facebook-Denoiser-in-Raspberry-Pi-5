@@ -1,10 +1,8 @@
 """
-RP5 Full-Duplex Audio Communication - Improved Output Version
+RP5 Full-Duplex Audio Communication with AI Toggle
 
-Changelog:
-- Dynamic updates for audio levels and stats (single line refresh)
-- Static output for important events only
-- Cleaner terminal output
+Press Enter to toggle AI denoising ON/OFF
+Default: AI OFF (direct passthrough)
 """
 
 import argparse
@@ -19,6 +17,7 @@ import queue
 import time
 import threading
 import yaml
+import select
 
 # Add project root to path
 project_root = Path(__file__).resolve().parents[2]
@@ -29,7 +28,7 @@ from audio_pipeline.core.model_loader import ModelLoader
 
 
 class FullDuplexComm:
-    """Full-duplex audio communication with AI denoising"""
+    """Full-duplex audio communication with AI denoising toggle"""
     
     def __init__(
         self,
@@ -39,7 +38,8 @@ class FullDuplexComm:
         speaker_device: int,
         send_port: int = 9998,
         recv_port: int = 9999,
-        model_name: str = "Light-32-Depth4"
+        model_name: str = "Light-32-Depth4",
+        ai_enabled: bool = False  # Default: AI OFF
     ):
         """Initialize full-duplex communication"""
         self.role = role
@@ -47,15 +47,18 @@ class FullDuplexComm:
         self.mic_device = mic_device
         self.speaker_device = speaker_device
         
-        # Port assignment (use as configured in YAML)
+        # Port assignment
         self.send_port = send_port
         self.recv_port = recv_port
+        
+        # AI toggle
+        self.ai_enabled = ai_enabled
         
         # Audio settings
         self.sample_rate_48k = 48000
         self.sample_rate_16k = 16000
-        self.chunk_size_48k = 960   # 20ms @ 48kHz
-        self.chunk_size_16k = 320   # 20ms @ 16kHz
+        self.chunk_size_48k = 960
+        self.chunk_size_16k = 320
         
         # UDP sockets
         self.send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -100,6 +103,7 @@ class FullDuplexComm:
         print(f"   Mic: Device {mic_device}")
         print(f"   Speaker: Device {speaker_device}")
         print(f"   Model: {model_name}")
+        print(f"   AI Denoising: {'🟢 ON' if self.ai_enabled else '🔴 OFF'} (default)")
     
     def mic_callback(self, indata, frames, time_info, status):
         """Microphone input callback"""
@@ -157,18 +161,28 @@ class FullDuplexComm:
                     num_samples_16k = int(len(audio_48k) * resample_ratio)
                     audio_16k = signal.resample(audio_48k, num_samples_16k)
                     
-                    # AI Denoising
-                    with torch.no_grad():
-                        audio_torch = torch.from_numpy(audio_16k.T).float().unsqueeze(0)
-                        self.ai_before = audio_torch.abs().max().item()
-                        
-                        denoised = self.denoiser(audio_torch)
-                        self.ai_after = denoised.abs().max().item()
-                        
-                        audio_16k_clean = denoised.squeeze(0).T.numpy()
+                    # Flatten audio
+                    audio_16k_flat = audio_16k.flatten() if audio_16k.ndim > 1 else audio_16k
+                    
+                    # AI Denoising (conditional)
+                    if self.ai_enabled:
+                        # AI ON: Apply denoising
+                        with torch.no_grad():
+                            self.ai_before = np.abs(audio_16k_flat).max()
+                            
+                            audio_tensor = torch.from_numpy(audio_16k_flat).float().unsqueeze(0).unsqueeze(0)
+                            denoised = self.denoiser(audio_tensor)
+                            audio_denoised = denoised.squeeze().cpu().numpy()
+                            
+                            self.ai_after = np.abs(audio_denoised).max()
+                    else:
+                        # AI OFF: Direct passthrough
+                        self.ai_before = np.abs(audio_16k_flat).max()
+                        audio_denoised = audio_16k_flat
+                        self.ai_after = self.ai_before
                     
                     # Opus encode
-                    audio_int16 = (audio_16k_clean * 32767).astype(np.int16)
+                    audio_int16 = (audio_denoised * 32767).astype(np.int16)
                     packet = self.codec.encode(audio_int16)
                     
                     # UDP send
@@ -226,6 +240,25 @@ class FullDuplexComm:
         
         print("\n📥 Receive thread stopped")
     
+    def toggle_thread(self):
+        """AI toggle listener thread"""
+        print("\n🎛️  Press Enter to toggle AI denoising, 'q' + Enter to quit")
+        
+        while self.running:
+            # Non-blocking input check
+            if sys.stdin in select.select([sys.stdin], [], [], 0.1)[0]:
+                line = sys.stdin.readline().strip().lower()
+                
+                if line == 'q':
+                    print("\n👋 Quit requested...")
+                    self.running = False
+                    break
+                else:
+                    # Enter pressed (empty line or any other input)
+                    self.ai_enabled = not self.ai_enabled
+                    status = "🟢 ON" if self.ai_enabled else "🔴 OFF"
+                    print(f"\n[TOGGLE] AI Denoising: {status}\n")
+    
     def stats_thread(self):
         """Statistics reporting thread with dynamic updates"""
         last_update = time.time()
@@ -239,12 +272,15 @@ class FullDuplexComm:
                 send_rate = self.packets_sent / elapsed if elapsed > 0 else 0
                 recv_rate = self.packets_received / elapsed if elapsed > 0 else 0
                 
+                # AI status indicator
+                ai_status = "🟢" if self.ai_enabled else "🔴"
+                
                 # Single line dynamic update
                 status = (
                     f"\r📊 TX: {self.packets_sent:5d} ({send_rate:4.1f} pkt/s) | "
                     f"RX: {self.packets_received:5d} ({recv_rate:4.1f} pkt/s) | "
                     f"🎤 {self.mic_level:.3f} | "
-                    f"🤖 {self.ai_before:.3f}→{self.ai_after:.3f} | "
+                    f"{ai_status} {self.ai_before:.3f}→{self.ai_after:.3f} | "
                     f"📥 {self.decoded_level:.3f} | "
                     f"🔊 {self.speaker_level:.3f} | "
                     f"⏱️ {elapsed:.0f}s"
@@ -263,37 +299,38 @@ class FullDuplexComm:
         send_t = threading.Thread(target=self.send_thread, daemon=True)
         recv_t = threading.Thread(target=self.recv_thread, daemon=True)
         stats_t = threading.Thread(target=self.stats_thread, daemon=True)
+        toggle_t = threading.Thread(target=self.toggle_thread, daemon=True)
         
         send_t.start()
         recv_t.start()
         stats_t.start()
+        toggle_t.start()
         
         print("\n🔄 Full-duplex communication started")
-        print("Legend: TX=Sent, RX=Received, 🎤=Mic, 🤖=AI(before→after), 📥=Decoded, 🔊=Speaker")
-        print("Press Ctrl+C to stop...\n")
+        print("Legend: TX=Sent, RX=Received, 🎤=Mic, 🟢/🔴=AI(before→after), 📥=Decoded, 🔊=Speaker")
         
         try:
             # Keep main thread alive
-            while True:
-                time.sleep(1)
+            while self.running:
+                time.sleep(0.5)
         except KeyboardInterrupt:
             print("\n\n🛑 Stopping...")
             self.running = False
-            
-            # Wait for threads
-            send_t.join(timeout=2)
-            recv_t.join(timeout=2)
-            
-            # Print final stats
-            elapsed = time.time() - self.start_time
-            print("\n" + "="*70)
-            print("📊 Session Statistics:")
-            print(f"   Packets sent: {self.packets_sent}")
-            print(f"   Packets received: {self.packets_received}")
-            print(f"   Duration: {elapsed:.1f}s")
-            print(f"   Send rate: {self.packets_sent/elapsed:.1f} packets/s")
-            print(f"   Recv rate: {self.packets_received/elapsed:.1f} packets/s")
-            print("="*70)
+        
+        # Wait for threads
+        send_t.join(timeout=2)
+        recv_t.join(timeout=2)
+        
+        # Print final stats
+        elapsed = time.time() - self.start_time
+        print("\n" + "="*70)
+        print("📊 Session Statistics:")
+        print(f"   Packets sent: {self.packets_sent}")
+        print(f"   Packets received: {self.packets_received}")
+        print(f"   Duration: {elapsed:.1f}s")
+        print(f"   Send rate: {self.packets_sent/elapsed:.1f} packets/s")
+        print(f"   Recv rate: {self.packets_received/elapsed:.1f} packets/s")
+        print("="*70)
 
 
 def list_audio_devices():
@@ -312,7 +349,7 @@ def list_audio_devices():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="RP5 Full-Duplex Communication")
+    parser = argparse.ArgumentParser(description="RP5 Full-Duplex Communication with AI Toggle")
     parser.add_argument("--config", type=str, default=None,
                        help="Config file path")
     parser.add_argument("--role", type=str, required=False, choices=['A', 'B'],
@@ -331,6 +368,8 @@ def main():
                        help="List available audio devices and exit")
     parser.add_argument("--model", type=str, default="Light-32-Depth4",
                        help="AI denoiser model name")
+    parser.add_argument("--ai-on", action="store_true",
+                       help="Start with AI denoising enabled (default: OFF)")
     
     args = parser.parse_args()
     
@@ -371,7 +410,8 @@ def main():
         speaker_device=args.speaker_device,
         send_port=args.send_port,
         recv_port=args.recv_port,
-        model_name=args.model
+        model_name=args.model,
+        ai_enabled=args.ai_on  # Default: False
     )
     
     comm.run()
