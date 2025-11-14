@@ -1,0 +1,10 @@
+# RP5-B DEBUG Configuration
+# WiFi Direct Full-Duplex Communication
+# Mode: DEBUG (NO AI)
+
+role: B
+peer_ip: 10.42.0.1    # RP5-A IP
+mic_device: 1         # Update after device selection
+speaker_device: 1     # Update after device selection
+send_port: 9998       # Send to RP5-A:9998
+recv_port: 9999       # Receive from RP5-A:9999
