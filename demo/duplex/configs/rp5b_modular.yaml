@@ -1,0 +1,18 @@
+# RP5-B Modular Configuration
+# Client - normal buffer size
+
+role: B
+peer_ip: 10.42.0.1  # RP5-A
+mic_device: 1
+speaker_device: 1
+send_port: 9998
+recv_port: 9999
+
+# Buffer settings (normal for client)
+buffer_size: 5
+
+# Processors
+enable_ai: true
+enable_classical: false  # Not yet implemented
+ai_model: Light-32-Depth4
+initial_processor: 0  # 0=Bypass, 1=AI, 2=Classical
