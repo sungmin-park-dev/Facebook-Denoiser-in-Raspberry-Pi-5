@@ -75,36 +75,62 @@ class AudioComm:
         print(f"   Recv: 0.0.0.0:{recv_port}")
     
 
+    # def downsample_48k_to_16k(self, audio_48k: np.ndarray) -> np.ndarray:
+    #     """
+    #     Downsample from 48kHz to 16kHz using polyphase filter
+        
+    #     Args:
+    #         audio_48k: Audio at 48kHz
+        
+    #     Returns:
+    #         Audio at 16kHz (float32, mono)
+    #     """
+    #     # Flatten if needed
+    #     if audio_48k.ndim > 1:
+    #         audio_48k = audio_48k.flatten()
+        
+    #     # Measure input level
+    #     input_level = np.abs(audio_48k).max()
+        
+    #     # Polyphase resampling: 48kHz → 16kHz (down by 3)
+    #     audio_16k = signal.resample_poly(audio_48k, 1, 3)
+        
+    #     # Measure output level
+    #     output_level = np.abs(audio_16k).max()
+        
+    #     # ===== 추가: Gain 보정 =====
+    #     if output_level > 1e-6 and input_level > 1e-6:
+    #         # Restore original peak level
+    #         gain = input_level / (output_level + 1e-8)
+    #         gain = np.clip(gain, 0.5, 2.0)  # Limit gain range
+    #         audio_16k = audio_16k * gain
+    #     # ===========================
+        
+    #     return audio_16k.astype(np.float32)
+
     def downsample_48k_to_16k(self, audio_48k: np.ndarray) -> np.ndarray:
-        """
-        Downsample from 48kHz to 16kHz using polyphase filter
-        
-        Args:
-            audio_48k: Audio at 48kHz
-        
-        Returns:
-            Audio at 16kHz (float32, mono)
-        """
-        # Flatten if needed
         if audio_48k.ndim > 1:
             audio_48k = audio_48k.flatten()
         
-        # Measure input level
-        input_level = np.abs(audio_48k).max()
+        # 🔧 에너지 측정 추가
+        input_rms = np.sqrt(np.mean(audio_48k**2))
+        input_peak = np.abs(audio_48k).max()
         
-        # Polyphase resampling: 48kHz → 16kHz (down by 3)
         audio_16k = signal.resample_poly(audio_48k, 1, 3)
         
-        # Measure output level
-        output_level = np.abs(audio_16k).max()
+        output_rms = np.sqrt(np.mean(audio_16k**2))
+        output_peak = np.abs(audio_16k).max()
         
-        # ===== 추가: Gain 보정 =====
-        if output_level > 1e-6 and input_level > 1e-6:
-            # Restore original peak level
-            gain = input_level / (output_level + 1e-8)
-            gain = np.clip(gain, 0.5, 2.0)  # Limit gain range
-            audio_16k = audio_16k * gain
-        # ===========================
+        # 로그 (500 chunk마다 = 10초)
+        if not hasattr(self, '_downsample_counter'):
+            self._downsample_counter = 0
+        self._downsample_counter += 1
+        
+        if self._downsample_counter % 500 == 0:
+            rms_ratio = output_rms / (input_rms + 1e-8)
+            peak_ratio = output_peak / (input_peak + 1e-8)
+            print(f"📉 Downsample: RMS {input_rms:.4f}→{output_rms:.4f} ({rms_ratio:.2f}x) | "
+                f"Peak {input_peak:.3f}→{output_peak:.3f} ({peak_ratio:.2f}x)")
         
         return audio_16k.astype(np.float32)
     

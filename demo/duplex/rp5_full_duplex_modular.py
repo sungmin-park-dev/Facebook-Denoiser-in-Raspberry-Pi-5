@@ -154,14 +154,22 @@ class FullDuplexModular:
                     # Downsample to 16kHz
                     audio_16k = self.comm.downsample_48k_to_16k(audio_48k)
                     
-                    # Process with current processor
-                    processor = self.processors[self.current_idx]
-                    audio_processed = processor.process(audio_16k)
-                    self.processed_level = np.abs(audio_processed).max()
+                    # Process with current processor ()
+                    # processor = self.processors[self.current_idx]
+                    # audio_processed = processor.process(audio_16k)
+                    # self.processed_level = np.abs(audio_processed).max()
                     
-                    # Send via UDP
-                    if self.comm.send(audio_processed):
+                    # # Send via UDP
+                    # if self.comm.send(audio_processed):
+                    #     self.packets_sent += 1
+
+                    #### 수정 ####
+                    # 🔧 AI 제거: 원본 전송
+                    self.processed_level = np.abs(audio_16k).max()
+                    
+                    if self.comm.send(audio_16k):  # audio_processed → audio_16k
                         self.packets_sent += 1
+
                     
                 except queue.Empty:
                     continue
@@ -189,6 +197,12 @@ class FullDuplexModular:
                 try:
                     # Receive via UDP
                     audio_16k = self.comm.receive()
+
+                    # 🔧 AI 추가: Opus 해제 후 처리
+                    if self.current_idx > 0:  # AI 모드일 때만
+                        processor = self.processors[self.current_idx]
+                        audio_16k = processor.process(audio_16k)
+
                     self.decoded_level = np.abs(audio_16k).max()
                     
                     # Upsample to 48kHz
@@ -245,7 +259,7 @@ class FullDuplexModular:
                     f"📥 {self.decoded_level:.3f} | "
                     f"🔊 {self.speaker_level:.3f} | "
                     f"⏱️ {elapsed:.0f}s | "
-                    f"[{processor_name}]"
+                    f"[{processor_name}] 📥RX-AI"  # ← 이 부분 추가
                 )
                 print(status, end='', flush=True)
                 last_update = time.time()
