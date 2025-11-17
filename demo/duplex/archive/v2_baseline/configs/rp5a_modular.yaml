@@ -1,0 +1,18 @@
+# RP5-A Modular Configuration
+# Hotspot host - increased buffer to reduce audio dropout
+
+role: A
+peer_ip: 10.42.0.224  # RP5-B
+mic_device: 1
+speaker_device: 1
+send_port: 9999
+recv_port: 9998
+
+# Buffer settings (INCREASED for hotspot host)
+buffer_size: 15  # 10 → 15 for AI processing stability
+
+# Processors
+enable_ai: true
+enable_classical: false  # Not yet implemented
+ai_model: Light-32-Depth4
+initial_processor: 0  # 0=Bypass, 1=AI, 2=Classical

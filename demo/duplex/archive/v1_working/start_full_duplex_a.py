@@ -159,27 +159,6 @@ def check_wifi_direct(config):
     else:
         print(f"{Colors.GREEN}✅ Peer reachable: {config['peer_ip']}{Colors.NC}")
 
-def check_git(config):
-    """Check Git repository status"""
-    print(f"{Colors.YELLOW}📂 Checking Git repository...{Colors.NC}")
-    
-    project_dir = os.path.expanduser(config['project_dir'])
-    
-    if not os.path.exists(os.path.join(project_dir, '.git')):
-        print(f"{Colors.RED}❌ Not a git repository: {project_dir}{Colors.NC}")
-        sys.exit(1)
-    
-    # Get current branch and commit
-    os.chdir(project_dir)
-    branch = run_cmd("git branch --show-current")
-    commit = run_cmd("git rev-parse --short HEAD")
-    
-    print(f"{Colors.GREEN}✅ Git: {branch} @ {commit}{Colors.NC}")
-    
-    # Check for uncommitted changes
-    status = run_cmd("git status --porcelain", check=False)
-    if status:
-        print(f"{Colors.YELLOW}⚠️  Uncommitted changes detected{Colors.NC}")
 
 def activate_venv(config):
     """Check and activate Python virtual environment"""
@@ -249,9 +228,7 @@ def main(role, config):
         check_wifi_direct(config)
         print()
         
-        # 2. Check Git
-        check_git(config)
-        print()
+        # 2. Git sync --> Removed
         
         # 3. Setup Python environment
         activate_venv(config)

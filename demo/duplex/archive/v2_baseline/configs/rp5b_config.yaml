@@ -1,0 +1,11 @@
+# RP5-B Configuration for WiFi Direct Full-Duplex Communication
+# Network: WiFi Direct (RP5-Direct)
+# RP5-B acts as Client (10.42.0.224)
+
+role: B
+peer_ip: 10.42.0.1
+mic_device: 1
+speaker_device: 1
+send_port: 9998  # A의 recv_port로
+recv_port: 9999  # A의 send_port에서
+model: Light-32-Depth4
