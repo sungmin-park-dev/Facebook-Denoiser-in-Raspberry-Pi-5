@@ -113,25 +113,7 @@ def check_wifi_direct(my_ip, ssid, password):
     
     print(f"{Colors.GREEN}✅ WiFi Direct OK: {my_ip}{Colors.NC}")
 
-def check_git(project_dir):
-    """Check Git status"""
-    print(f"{Colors.YELLOW}📦 Checking Git...{Colors.NC}")
-    
-    os.chdir(os.path.expanduser(project_dir))
-    
-    # Check for uncommitted changes
-    status = run_cmd("git status --porcelain")
-    if status:
-        print(f"{Colors.YELLOW}⚠️  Uncommitted changes detected{Colors.NC}")
-    
-    # Check if behind remote
-    run_cmd("git fetch", check=False)
-    behind = run_cmd("git rev-list HEAD..origin/main --count", check=False)
-    if behind and int(behind) > 0:
-        print(f"{Colors.YELLOW}⚠️  Behind origin/main by {behind} commits{Colors.NC}")
-        print(f"{Colors.YELLOW}💡 Run: git pull origin main{Colors.NC}")
-    else:
-        print(f"{Colors.GREEN}✅ Git up to date{Colors.NC}")
+
 
 def activate_venv(project_dir, venv_name):
     """Check venv"""
@@ -169,9 +151,7 @@ def main():
         check_wifi_direct(CONFIG['my_ip'], CONFIG['wifi_ssid'], CONFIG['wifi_password'])
         print()
         
-        # 2. Git
-        check_git(CONFIG['project_dir'])
-        print()
+        # 2. Git sync --> Removed
         
         # 3. Python venv
         activate_venv(CONFIG['project_dir'], CONFIG['venv'])
