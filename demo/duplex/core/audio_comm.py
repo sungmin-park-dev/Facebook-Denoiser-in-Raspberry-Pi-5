@@ -89,11 +89,26 @@ class AudioComm:
         if audio_48k.ndim > 1:
             audio_48k = audio_48k.flatten()
         
+        # Measure input level
+        input_level = np.abs(audio_48k).max()
+        
         # Polyphase resampling: 48kHz → 16kHz (down by 3)
-        audio_16k = signal.resample_poly(audio_48k, 1, 3)  # ← 변경!
+        audio_16k = signal.resample_poly(audio_48k, 1, 3)
+        
+        # Measure output level
+        output_level = np.abs(audio_16k).max()
+        
+        # ===== 추가: Gain 보정 =====
+        if output_level > 1e-6 and input_level > 1e-6:
+            # Restore original peak level
+            gain = input_level / (output_level + 1e-8)
+            gain = np.clip(gain, 0.5, 2.0)  # Limit gain range
+            audio_16k = audio_16k * gain
+        # ===========================
         
         return audio_16k.astype(np.float32)
-
+    
+    
     def upsample_16k_to_48k(self, audio_16k: np.ndarray) -> np.ndarray:
         """
         Upsample from 16kHz to 48kHz using polyphase filter
