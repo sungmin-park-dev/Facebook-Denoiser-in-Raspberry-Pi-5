@@ -53,9 +53,10 @@ class AIDenoiserProcessor(AudioProcessor):
         # Logging
         self._log_counter = 0
     
+    
     def process(self, audio: np.ndarray) -> np.ndarray:
         """
-        Apply AI denoising
+        Apply AI denoising with input normalization
         
         Args:
             audio: Input audio (16kHz, mono, float32)
@@ -66,9 +67,19 @@ class AIDenoiserProcessor(AudioProcessor):
         # Measure input level
         input_level = np.abs(audio).max()
         
+        # ===== 추가: 입력 정규화 =====
+        if input_level > 1e-6:
+            # Normalize to peak = 1.0
+            audio_normalized = audio / (input_level + 1e-8)
+            audio_normalized = np.clip(audio_normalized, -1.0, 1.0)
+        else:
+            # Silent audio, no normalization
+            audio_normalized = audio
+        # ============================
+        
         with torch.no_grad():
             # Convert to tensor: [batch=1, channels=1, time]
-            audio_tensor = torch.from_numpy(audio).float().unsqueeze(0).unsqueeze(0)
+            audio_tensor = torch.from_numpy(audio_normalized).float().unsqueeze(0).unsqueeze(0)  # ← 변경!
             
             # Denoise
             denoised = self.denoiser(audio_tensor)
@@ -76,18 +87,25 @@ class AIDenoiserProcessor(AudioProcessor):
             # Convert back to numpy
             audio_denoised = denoised.squeeze().cpu().numpy()
         
+        # ===== 추가: 원래 스케일로 복원 =====
+        if input_level > 1e-6:
+            audio_denoised = audio_denoised * input_level
+        # ====================================
+        
         # Measure output level
         output_level = np.abs(audio_denoised).max()
         
         # Log every 10 seconds (500 chunks @ 20ms)
         self._log_counter += 1
         if self._log_counter % 500 == 0:
-            if input_level > 0.001:  # Only log if there's actual audio
+            if input_level > 0.001:
                 reduction = (1 - output_level / (input_level + 1e-8)) * 100
                 print(f"🤖 AI Active: In={input_level:.3f} → Out={output_level:.3f} (Noise ↓{reduction:.1f}%)")
         
         return audio_denoised
-    
+
+
+
     def get_name(self) -> str:
         """Get processor name"""
         return f"AI Denoiser ({self.model_name})"

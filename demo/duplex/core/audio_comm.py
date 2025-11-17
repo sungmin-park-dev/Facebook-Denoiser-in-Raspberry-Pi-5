@@ -74,9 +74,10 @@ class AudioComm:
         print(f"   Send: {peer_ip}:{send_port}")
         print(f"   Recv: 0.0.0.0:{recv_port}")
     
+
     def downsample_48k_to_16k(self, audio_48k: np.ndarray) -> np.ndarray:
         """
-        Downsample from 48kHz to 16kHz
+        Downsample from 48kHz to 16kHz using polyphase filter
         
         Args:
             audio_48k: Audio at 48kHz
@@ -88,15 +89,14 @@ class AudioComm:
         if audio_48k.ndim > 1:
             audio_48k = audio_48k.flatten()
         
-        # Resample
-        num_samples_16k = int(len(audio_48k) * self.downsample_ratio)
-        audio_16k = signal.resample(audio_48k, num_samples_16k)
+        # Polyphase resampling: 48kHz → 16kHz (down by 3)
+        audio_16k = signal.resample_poly(audio_48k, 1, 3)  # ← 변경!
         
         return audio_16k.astype(np.float32)
-    
+
     def upsample_16k_to_48k(self, audio_16k: np.ndarray) -> np.ndarray:
         """
-        Upsample from 16kHz to 48kHz
+        Upsample from 16kHz to 48kHz using polyphase filter
         
         Args:
             audio_16k: Audio at 16kHz
@@ -104,10 +104,12 @@ class AudioComm:
         Returns:
             Audio at 48kHz (float32, mono)
         """
-        num_samples_48k = int(len(audio_16k) * self.upsample_ratio)
-        audio_48k = signal.resample(audio_16k, num_samples_48k)
+        # Polyphase resampling: 16kHz → 48kHz (up by 3)
+        audio_48k = signal.resample_poly(audio_16k, 3, 1)  # ← 변경!
         
         return audio_48k.astype(np.float32)
+    
+
     
     def send(self, audio_16k: np.ndarray) -> bool:
         """
