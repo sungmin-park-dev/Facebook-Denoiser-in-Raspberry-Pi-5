@@ -44,7 +44,7 @@ class FullDuplexModular:
         speaker_device: int,
         send_port: int,
         recv_port: int,
-        buffer_size: int = 5,
+        buffer_size: int = 30,  # 30 -> 5
         processors: list = None,
         initial_processor: int = 0
     ):
@@ -83,8 +83,8 @@ class FullDuplexModular:
         self.current_idx = initial_processor
         
         # Audio queues
-        self.send_queue = queue.Queue(maxsize=buffer_size)
-        self.recv_queue = queue.Queue(maxsize=buffer_size)
+        self.send_queue = queue.Queue(maxsize = buffer_size)
+        self.recv_queue = queue.Queue(maxsize = buffer_size)
         
         # Stats
         self.packets_sent = 0
@@ -155,22 +155,14 @@ class FullDuplexModular:
                     audio_16k = self.comm.downsample_48k_to_16k(audio_48k)
                     
                     # Process with current processor ()
-                    # processor = self.processors[self.current_idx]
-                    # audio_processed = processor.process(audio_16k)
-                    # self.processed_level = np.abs(audio_processed).max()
+                    processor = self.processors[self.current_idx]
+                    audio_processed = processor.process(audio_16k)
+                    self.processed_level = np.abs(audio_processed).max()
                     
-                    # # Send via UDP
-                    # if self.comm.send(audio_processed):
-                    #     self.packets_sent += 1
-
-                    #### 수정 ####
-                    # 🔧 AI 제거: 원본 전송
-                    self.processed_level = np.abs(audio_16k).max()
-                    
-                    if self.comm.send(audio_16k):  # audio_processed → audio_16k
+                    # Send via UDP
+                    if self.comm.send(audio_processed): # audio_16k → audio_processed
                         self.packets_sent += 1
 
-                    
                 except queue.Empty:
                     continue
                 except Exception as e:
@@ -178,6 +170,7 @@ class FullDuplexModular:
                         print(f"\n❌ Send error: {e}")
         
         print("\n📤 Send thread stopped")
+    
     
     def recv_thread(self):
         """Receiving thread: Receive → Decode → Upsample → Speaker"""
@@ -198,11 +191,7 @@ class FullDuplexModular:
                     # Receive via UDP
                     audio_16k = self.comm.receive()
 
-                    # 🔧 AI 추가: Opus 해제 후 처리
-                    if self.current_idx > 0:  # AI 모드일 때만
-                        processor = self.processors[self.current_idx]
-                        audio_16k = processor.process(audio_16k)
-
+                    # Bypass만 사용, 수신측 AI 처리 제거 
                     self.decoded_level = np.abs(audio_16k).max()
                     
                     # Upsample to 48kHz
@@ -250,7 +239,7 @@ class FullDuplexModular:
                 recv_rate = self.packets_received / elapsed if elapsed > 0 else 0
                 
                 processor_name = self.processors[self.current_idx].get_name()
-                
+                                
                 status = (
                     f"\r📊 TX: {self.packets_sent:5d} ({send_rate:4.1f}/s) | "
                     f"RX: {self.packets_received:5d} ({recv_rate:4.1f}/s) | "
@@ -259,7 +248,7 @@ class FullDuplexModular:
                     f"📥 {self.decoded_level:.3f} | "
                     f"🔊 {self.speaker_level:.3f} | "
                     f"⏱️ {elapsed:.0f}s | "
-                    f"[{processor_name}] 📥RX-AI"  # ← 이 부분 추가
+                    f"[{processor_name}] 📤TX-AI"  # RX-AI → TX-AI
                 )
                 print(status, end='', flush=True)
                 last_update = time.time()

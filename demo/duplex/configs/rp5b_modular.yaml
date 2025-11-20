@@ -9,7 +9,7 @@ send_port: 9998
 recv_port: 9999
 
 # Buffer settings (normal for client)
-buffer_size: 5
+buffer_size: 30
 
 # Processors
 enable_ai: true

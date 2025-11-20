@@ -9,7 +9,7 @@ send_port: 9999
 recv_port: 9998
 
 # Buffer settings (INCREASED for hotspot host)
-buffer_size: 15  # 10 → 15 for AI processing stability
+buffer_size: 30  # 10 → 15 for AI processing stability
 
 # Processors
 enable_ai: true
