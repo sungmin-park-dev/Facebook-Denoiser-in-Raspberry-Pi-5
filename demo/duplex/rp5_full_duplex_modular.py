@@ -160,7 +160,7 @@ class FullDuplexModular:
         
         # 배치 처리용 버퍼
         batch_buffer = []
-        batch_size = 2  # 2개씩 모아서 처리 (60ms * 2 = 120ms)
+        batch_size = 1  # 2 → 1: 즉시 처리 (딜레이 최소화)
         
         with sd.InputStream(
             device=self.mic_device,
@@ -175,6 +175,21 @@ class FullDuplexModular:
             
             while self.running:
                 try:
+                    # ===== Queue 플러시 (딜레이 누적 방지) =====
+                    queue_size = self.send_queue.qsize()
+                    max_queue_size = 5  # 최대 5개 (300ms)
+                    
+                    if queue_size > max_queue_size:
+                        # 오래된 프레임 버리고 최신 것만 유지
+                        dropped = 0
+                        while self.send_queue.qsize() > 3:  # 3개(180ms)만 남김
+                            self.send_queue.get_nowait()
+                            dropped += 1
+                        
+                        if dropped > 0:
+                            print(f"⚠️  Queue overflow: dropped {dropped} frames (RTF spike detected)")
+                    # ==========================================
+                    
                     # Get audio from mic (2880 samples @ 48kHz)
                     audio_48k = self.send_queue.get(timeout=0.1)
                     
@@ -297,7 +312,7 @@ class FullDuplexModular:
                   f"📥 {self.decoded_level:.3f} | 🔊 {self.speaker_level:.3f} | "
                   f"⏱️ {int(elapsed)}s | "
                   f"[{self.processors[self.current_idx].get_name()}] "
-                  f"📤TX-AI{self.send_queue.qsize()}")
+                  f"📤Q:{self.send_queue.qsize()}")
     
     
     def input_thread(self):
