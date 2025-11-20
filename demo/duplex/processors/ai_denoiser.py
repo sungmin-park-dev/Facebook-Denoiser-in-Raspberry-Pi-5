@@ -51,6 +51,13 @@ class AIDenoiserProcessor(AudioProcessor):
         
         print(f"✅ {model_name} loaded (JIT optimized)")
         
+        # ===== 텐서 재사용 (메모리 프리할당) =====
+        self.max_length = 960  # 60ms @ 16kHz
+        self.input_tensor = torch.zeros(1, 1, self.max_length, dtype=torch.float32)
+        self.output_buffer = np.zeros(self.max_length, dtype=np.float32)
+        print(f"⚡ Pre-allocated tensors for {self.max_length} samples")
+        # ========================================
+        
         # Logging
         self._log_counter = 0
         
@@ -84,15 +91,38 @@ class AIDenoiserProcessor(AudioProcessor):
         else:
             audio_normalized = audio
         
+        # ===== 텐서 재사용 (메모리 복사 최소화) =====
+        audio_length = len(audio_normalized)
+        
+        # 길이가 max_length 이하인 경우만 재사용
+        if audio_length <= self.max_length:
+            # 기존 텐서에 데이터 복사 (새로 생성하지 않음)
+            self.input_tensor[0, 0, :audio_length] = torch.from_numpy(audio_normalized)
+            if audio_length < self.max_length:
+                self.input_tensor[0, 0, audio_length:] = 0  # Zero padding
+            
+            input_tensor = self.input_tensor[:, :, :audio_length]
+        else:
+            # 예외: 길이가 초과하면 새로 생성
+            input_tensor = torch.from_numpy(audio_normalized).float().unsqueeze(0).unsqueeze(0)
+        # ===========================================
+        
         with torch.no_grad():
-            # Convert to tensor: [batch=1, channels=1, time]
-            audio_tensor = torch.from_numpy(audio_normalized).float().unsqueeze(0).unsqueeze(0)
-            
             # AI denoising
-            output_tensor = self.denoiser(audio_tensor)
+            output_tensor = self.denoiser(input_tensor)
             
-            # Convert back to numpy
-            output = output_tensor.squeeze().numpy()
+            # ===== 출력 버퍼 재사용 =====
+            output_np = output_tensor.squeeze().numpy()
+            output_length = len(output_np)
+            
+            if output_length <= self.max_length:
+                # 기존 버퍼에 복사
+                self.output_buffer[:output_length] = output_np
+                output = self.output_buffer[:output_length].copy()
+            else:
+                # 예외: 길이 초과
+                output = output_np
+            # ===========================
         
         # ===== 출력 정규화 강화 =====
         output_level = np.abs(output).max()
@@ -106,10 +136,11 @@ class AIDenoiserProcessor(AudioProcessor):
             if self._log_counter % 100 == 0:
                 print(f"⚠️  AI output clipping prevented: {output_level:.3f} → 1.0")
         
-        # 입력 레벨 복원 (but 1.0 이하로 제한)
+        # ===== 입력 레벨 복원 (증폭 강화) =====
         if input_level > 1e-6:
-            output = output * min(input_level, 0.95)  # 0.95로 제한 (여유)
-        # ==========================
+            # 0.95 → 1.05 (약 10% 증폭)
+            output = output * min(input_level * 1.05, 1.0)
+        # ====================================
         
         # ===== 종료 시간 및 RTF 계산 =====
         elapsed_ms = (time.perf_counter() - start_time) * 1000
