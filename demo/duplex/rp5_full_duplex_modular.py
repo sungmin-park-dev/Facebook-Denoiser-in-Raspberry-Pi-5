@@ -44,7 +44,7 @@ class FullDuplexModular:
         speaker_device: int,
         send_port: int,
         recv_port: int,
-        buffer_size: int = 30,  # 30 -> 5
+        buffer_size: int = 30,
         processors: list = None,
         initial_processor: int = 0
     ):
@@ -68,7 +68,9 @@ class FullDuplexModular:
         
         # Audio settings
         self.sample_rate_48k = 48000
-        self.chunk_size_48k = 960  # 20ms
+        # ===== Chunk 크기 증가: 20ms → 60ms =====
+        self.chunk_size_48k = 2880  # 960 → 2880 (60ms @ 48kHz)
+        # =========================================
         
         # Communication module
         self.comm = AudioComm(
@@ -79,20 +81,21 @@ class FullDuplexModular:
         )
         
         # Audio processors
-        self.processors = processors or [BypassProcessor()]
+        if processors is None:
+            processors = [BypassProcessor()]
+        self.processors = processors
         self.current_idx = initial_processor
         
-        # Audio queues
-        self.send_queue = queue.Queue(maxsize = buffer_size)
-        self.recv_queue = queue.Queue(maxsize = buffer_size)
+        # Queues
+        self.send_queue = queue.Queue(maxsize=buffer_size)
+        self.recv_queue = queue.Queue(maxsize=buffer_size)
         
         # Stats
         self.packets_sent = 0
         self.packets_received = 0
-        self.start_time = None
-        self.running = True
+        self.running = False
         
-        # Levels for monitoring
+        # Audio levels for stats
         self.mic_level = 0.0
         self.processed_level = 0.0
         self.decoded_level = 0.0
@@ -102,35 +105,53 @@ class FullDuplexModular:
         print(f"   Mic: Device {mic_device}")
         print(f"   Speaker: Device {speaker_device}")
         print(f"   Buffer: {buffer_size} frames")
-        print(f"   Processors: {len(self.processors)}")
-        for i, p in enumerate(self.processors):
-            marker = "→" if i == initial_processor else " "
-            print(f"   {marker} [{i}] {p.get_name()}")
+        print(f"   Chunk: {self.chunk_size_48k} samples (60ms)")  # ← 변경 표시
+        print(f"   Processors: {len(processors)}")
+        for i, proc in enumerate(processors):
+            prefix = "→" if i == initial_processor else " "
+            print(f"   {prefix} [{i}] {proc.get_name()}")
+    
     
     def mic_callback(self, indata, frames, time_info, status):
         """Microphone input callback"""
         if status:
-            print(f"⚠️ Mic: {status}")
+            print(f"⚠️  Input: {status}")
         
         try:
-            mono = indata.mean(axis=1, keepdims=True)
-            self.mic_level = np.abs(mono).max()
-            self.send_queue.put(mono, block=False)
+            # Convert to mono
+            if indata.ndim > 1:
+                audio = indata[:, 0].copy()
+            else:
+                audio = indata.copy()
+            
+            # Measure level
+            self.mic_level = np.abs(audio).max()
+            
+            # Add to send queue
+            self.send_queue.put_nowait(audio)
         except queue.Full:
-            pass
+            pass  # Drop if queue full
+    
     
     def speaker_callback(self, outdata, frames, time_info, status):
         """Speaker output callback"""
         if status:
-            print(f"⚠️ Speaker: {status}")
+            print(f"⚠️  Output: {status}")
         
         try:
-            mono_data = self.recv_queue.get(block=False)
-            stereo_data = np.repeat(mono_data, 2, axis=1)
-            self.speaker_level = np.abs(stereo_data).max()
-            outdata[:] = stereo_data
+            # Get from receive queue
+            audio = self.recv_queue.get_nowait()
+            
+            # Measure level
+            self.speaker_level = np.abs(audio).max()
+            
+            # Convert mono to stereo
+            outdata[:, 0] = audio
+            outdata[:, 1] = audio
         except queue.Empty:
+            # Output silence if queue empty
             outdata.fill(0)
+    
     
     def send_thread(self):
         """Sending thread: Mic → Process → Encode → Send"""
@@ -154,13 +175,13 @@ class FullDuplexModular:
                     # Downsample to 16kHz
                     audio_16k = self.comm.downsample_48k_to_16k(audio_48k)
                     
-                    # Process with current processor ()
+                    # Process with current processor
                     processor = self.processors[self.current_idx]
                     audio_processed = processor.process(audio_16k)
                     self.processed_level = np.abs(audio_processed).max()
                     
                     # Send via UDP
-                    if self.comm.send(audio_processed): # audio_16k → audio_processed
+                    if self.comm.send(audio_processed):
                         self.packets_sent += 1
 
                 except queue.Empty:
@@ -190,161 +211,137 @@ class FullDuplexModular:
                 try:
                     # Receive via UDP
                     audio_16k = self.comm.receive()
-
-                    # Bypass만 사용, 수신측 AI 처리 제거 
                     self.decoded_level = np.abs(audio_16k).max()
                     
                     # Upsample to 48kHz
                     audio_48k = self.comm.upsample_16k_to_48k(audio_16k)
                     
                     # Add to speaker queue
-                    self.recv_queue.put(audio_48k.reshape(-1, 1), block=False)
-                    self.packets_received += 1
+                    try:
+                        self.recv_queue.put_nowait(audio_48k)
+                    except queue.Full:
+                        pass  # Drop if queue full
                     
-                except queue.Full:
-                    pass
                 except Exception as e:
                     if self.running:
                         print(f"\n❌ Receive error: {e}")
         
         print("\n📥 Receive thread stopped")
     
-    def toggle_thread(self):
-        """Processor toggle listener"""
-        print("\n🎛️  Press Enter to toggle processor, 'q' + Enter to quit")
-        
-        while self.running:
-            if sys.stdin in select.select([sys.stdin], [], [], 0.1)[0]:
-                line = sys.stdin.readline().strip().lower()
-                
-                if line == 'q':
-                    print("\n👋 Quit requested...")
-                    self.running = False
-                    break
-                else:
-                    # Toggle processor
-                    self.current_idx = (self.current_idx + 1) % len(self.processors)
-                    processor = self.processors[self.current_idx]
-                    print(f"\n🔄 Switched to: {processor.get_name()}\n")
+    
+    def toggle_processor(self):
+        """Toggle to next processor"""
+        self.current_idx = (self.current_idx + 1) % len(self.processors)
+        print(f"\n🔄 Switched to: {self.processors[self.current_idx].get_name()}\n")
+    
     
     def stats_thread(self):
-        """Statistics reporting"""
-        last_update = time.time()
+        """Print statistics periodically"""
+        start_time = time.time()
+        last_tx = 0
+        last_rx = 0
         
         while self.running:
-            time.sleep(1)
-            if self.running and (time.time() - last_update) >= 1.0:
-                elapsed = time.time() - self.start_time
-                send_rate = self.packets_sent / elapsed if elapsed > 0 else 0
-                recv_rate = self.packets_received / elapsed if elapsed > 0 else 0
-                
-                processor_name = self.processors[self.current_idx].get_name()
-                                
-                status = (
-                    f"\r📊 TX: {self.packets_sent:5d} ({send_rate:4.1f}/s) | "
-                    f"RX: {self.packets_received:5d} ({recv_rate:4.1f}/s) | "
-                    f"🎤 {self.mic_level:.3f} | "
-                    f"🔧 {self.processed_level:.3f} | "
-                    f"📥 {self.decoded_level:.3f} | "
-                    f"🔊 {self.speaker_level:.3f} | "
-                    f"⏱️ {elapsed:.0f}s | "
-                    f"[{processor_name}] 📤TX-AI"  # RX-AI → TX-AI
-                )
-                print(status, end='', flush=True)
-                last_update = time.time()
+            time.sleep(5)
+            
+            # Calculate rates
+            elapsed = time.time() - start_time
+            tx_rate = (self.packets_sent - last_tx) / 5
+            rx_rate = (self.packets_received - last_rx) / 5
+            
+            last_tx = self.packets_sent
+            last_rx = self.packets_received
+            
+            # Print stats
+            print(f"📊 TX: {self.packets_sent:5d} ({tx_rate:.1f}/s) | "
+                  f"RX: {self.packets_received:5d} ({rx_rate:.1f}/s) | "
+                  f"🎤 {self.mic_level:.3f} | 🔧 {self.processed_level:.3f} | "
+                  f"📥 {self.decoded_level:.3f} | 🔊 {self.speaker_level:.3f} | "
+                  f"⏱️ {int(elapsed)}s | "
+                  f"[{self.processors[self.current_idx].get_name()}] "
+                  f"📤TX-AI{self.send_queue.qsize()}")
     
-    def run(self):
+    
+    def input_thread(self):
+        """Handle keyboard input for toggling"""
+        print("\n🎛️  Press Enter to toggle processor, 'q' + Enter to quit\n")
+        
+        while self.running:
+            try:
+                # Check for input without blocking
+                if select.select([sys.stdin], [], [], 0.1)[0]:
+                    line = sys.stdin.readline().strip()
+                    if line == 'q':
+                        self.running = False
+                        print("\n🛑 Stopping...\n")
+                    else:
+                        self.toggle_processor()
+            except:
+                pass
+    
+    
+    def start(self):
         """Start full-duplex communication"""
-        self.start_time = time.time()
+        self.running = True
         
         # Start threads
         send_t = threading.Thread(target=self.send_thread, daemon=True)
         recv_t = threading.Thread(target=self.recv_thread, daemon=True)
-        toggle_t = threading.Thread(target=self.toggle_thread, daemon=True)
         stats_t = threading.Thread(target=self.stats_thread, daemon=True)
+        input_t = threading.Thread(target=self.input_thread, daemon=True)
         
         send_t.start()
         recv_t.start()
-        toggle_t.start()
         stats_t.start()
+        input_t.start()
         
-        print("\n🔄 Modular full-duplex communication started")
+        print("\n🔄 Modular full-duplex communication started\n")
         print("Legend: TX=Sent, RX=Recv, 🎤=Mic, 🔧=Processed, 📥=Decoded, 🔊=Speaker")
         
+        # Wait for threads
         try:
-            while True:
-                time.sleep(1)
+            while self.running:
+                time.sleep(0.1)
+                self.packets_received = self.comm.recv_count if hasattr(self.comm, 'recv_count') else 0
         except KeyboardInterrupt:
-            print("\n\n🛑 Stopping...")
             self.running = False
-            
-            send_t.join(timeout=2)
-            recv_t.join(timeout=2)
-            
-            # Final stats
-            elapsed = time.time() - self.start_time
-            print("\n" + "="*70)
-            print("📊 Session Statistics:")
-            print(f"   Duration: {elapsed:.1f}s")
-            print(f"   Packets sent: {self.packets_sent} ({self.packets_sent/elapsed:.1f}/s)")
-            print(f"   Packets received: {self.packets_received} ({self.packets_received/elapsed:.1f}/s)")
-            print("="*70)
-            
-            # Close communication
-            self.comm.close()
-
-
-def list_audio_devices():
-    """List audio devices"""
-    print("\n🎤🔊 Available Audio Devices:")
-    print("="*60)
-    devices = sd.query_devices()
-    for i, device in enumerate(devices):
-        in_ch = device['max_input_channels']
-        out_ch = device['max_output_channels']
-        if in_ch > 0 or out_ch > 0:
-            print(f"{i}: {device['name']}")
-            print(f"   Input: {in_ch} ch, Output: {out_ch} ch")
-    print("="*60)
+            print("\n🛑 Stopping...\n")
+        
+        # Wait for cleanup
+        send_t.join(timeout=2)
+        recv_t.join(timeout=2)
+        
+        # Final stats
+        duration = time.time() - stats_t._target.__self__.start_time if hasattr(stats_t, '_target') else 0
+        print("\n" + "="*70)
+        print("📊 Session Statistics:")
+        if duration > 0:
+            print(f"   Duration: {duration:.1f}s")
+            print(f"   Packets sent: {self.packets_sent} ({self.packets_sent/duration:.1f}/s)")
+            print(f"   Packets received: {self.packets_received} ({self.packets_received/duration:.1f}/s)")
+        print("="*70 + "\n")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="RP5 Modular Full-Duplex")
-    parser.add_argument("--config", type=str, required=True,
-                       help="Config file path")
-    parser.add_argument("--list-devices", action="store_true",
-                       help="List audio devices")
-    
+    parser = argparse.ArgumentParser(description='RP5 Full-Duplex Modular Communication')
+    parser.add_argument('--config', type=str, required=True, help='Config YAML file')
     args = parser.parse_args()
-    
-    if args.list_devices:
-        list_audio_devices()
-        return
     
     # Load config
     with open(args.config, 'r') as f:
         config = yaml.safe_load(f)
     
     # Initialize processors
-    processors = []
+    processors = [BypassProcessor()]
     
-    # Add Bypass
-    processors.append(BypassProcessor())
-    
-    # Add AI Denoiser (if enabled)
     if config.get('enable_ai', True):
-        try:
-            processors.append(AIDenoiserProcessor(
-                model_name=config.get('ai_model', 'Light-32-Depth4')
-            ))
-        except Exception as e:
-            print(f"⚠️ Failed to load AI model: {e}")
+        model_name = config.get('ai_model', 'Light-32-Depth4')
+        processors.append(AIDenoiserProcessor(model_name=model_name))
     
-    # Add Classical Filters (if enabled)
     if config.get('enable_classical', False):
         processors.append(ClassicalFiltersProcessor())
     
-    # Create and run
+    # Create and start
     comm = FullDuplexModular(
         role=config['role'],
         peer_ip=config['peer_ip'],
@@ -352,12 +349,12 @@ def main():
         speaker_device=config['speaker_device'],
         send_port=config['send_port'],
         recv_port=config['recv_port'],
-        buffer_size=config.get('buffer_size', 5),
+        buffer_size=config.get('buffer_size', 30),
         processors=processors,
         initial_processor=config.get('initial_processor', 0)
     )
     
-    comm.run()
+    comm.start()
 
 
 if __name__ == "__main__":
