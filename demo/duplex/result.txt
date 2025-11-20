@@ -1,72 +1,41 @@
-(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ venv_denoiser/bin/python test_realtime.py 
-Loading model...
+🔄 Modular full-duplex communication started
+
+Legend: TX=Sent, RX=Recv, 🎤=Mic, 🔧=Processed, 📥=Decoded, 🔊=Speaker
+🎤 Microphone started
+🔊 Speaker started
+Exception ignored from cffi callback <function _StreamBase.__init__.<locals>.callback_ptr at 0xffff50bcf380>:
 Traceback (most recent call last):
-  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/test_realtime.py", line 39, in <module>
-    checkpoint = torch.load(MODEL_PATH, map_location='cpu', weights_only=False)
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/venv_denoiser/lib/python3.12/site-packages/torch/serialization.py", line 1484, in load
-    with _open_file_like(f, "rb") as opened_file:
-         ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/venv_denoiser/lib/python3.12/site-packages/torch/serialization.py", line 759, in _open_file_like
-    return _open_file(name_or_buffer, mode)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/venv_denoiser/lib/python3.12/site-packages/torch/serialization.py", line 740, in __init__
-    super().__init__(open(name, mode))
-                     ^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/home/test1/denoiser/models/best.th'
-(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ ls -lh best.th 
--rw-rw-r-- 1 test2 test2 1.7M Oct 28 16:16 best.th
-(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ venv_denoiser/bin/python test_realtime.py 
-Loading model...
-Traceback (most recent call last):
-  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/test_realtime.py", line 39, in <module>
-    checkpoint = torch.load(MODEL_PATH, map_location='cpu', weights_only=False)
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/venv_denoiser/lib/python3.12/site-packages/torch/serialization.py", line 1484, in load
-    with _open_file_like(f, "rb") as opened_file:
-         ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/venv_denoiser/lib/python3.12/site-packages/torch/serialization.py", line 759, in _open_file_like
-    return _open_file(name_or_buffer, mode)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/venv_denoiser/lib/python3.12/site-packages/torch/serialization.py", line 740, in __init__
-    super().__init__(open(name, mode))
-                     ^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/home/test1/denoiser/models/best.th'
-(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ venv_denoiser/bin/python test_realtime.py 
-Loading model...
-Compiling model...
-✅ Model ready
+  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 873, in callback_ptr
+    return _wrap_callback(callback, data, frames, time, status)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 2743, in _wrap_callback
+    callback(*args)
+  File "/home/test1/denoiser/demo/duplex/rp5_full_duplex_modular.py", line 149, in speaker_callback
+    outdata[:, 0] = audio
+    ~~~~~~~^^^^^^
+ValueError: could not broadcast input array from shape (960,) into shape (2880,)
+📊 TX:    82 (16.4/s) | RX:     0 (0.0/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.000 | 🔊 0.000 | ⏱️ 5s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:   166 (16.8/s) | RX:     0 (0.0/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.000 | 🔊 0.000 | ⏱️ 10s | [Bypass (No Processing)] 📤TX-AI0
+1
 
-============================================================
-🎤 Input: Device 1
-🔊 Output: Device 1
-📦 Processing chunk: 333ms
-🔄 Output buffer: 2000ms
-⏱️  Initial latency: ~2 seconds (buffer fill)
-============================================================
+🔄 Switched to: AI Denoiser (Light-32-Depth4)
 
-🚀 Starting buffered streaming...
-   🎤 Speak continuously - output will be smooth!
-   ⏳ Wait 2-3 seconds for buffer to fill...
-   Press Ctrl+C to stop
-
-[ 10.1s] Chunks:  30 | RTF: 0.089 | Buffer: 665ms
-[ 20.1s] Chunks:  60 | RTF: 0.088 | Buffer: 661ms
-[ 30.1s] Chunks:  90 | RTF: 0.084 | Buffer: 657ms
-[ 40.1s] Chunks: 120 | RTF: 0.079 | Buffer: 674ms
-[ 50.1s] Chunks: 150 | RTF: 0.081 | Buffer: 670ms
-[ 60.1s] Chunks: 180 | RTF: 0.085 | Buffer: 666ms
+🤖 AI RTF: avg=1.867, max=1.867, min=1.867 | Process time: 112.0ms / 60.0ms
+📊 TX:   245 (15.8/s) | RX:     0 (0.0/s) | 🎤 0.009 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 15s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI3
+🤖 AI RTF: avg=1.065, max=1.751, min=0.809 | Process time: 69.0ms / 60.0ms
 ^C
-
 🛑 Stopping...
 
-============================================================
-📊 Final Stats:
-   Chunks processed: 184
-   Runtime: 62.0s
-   Avg RTF: 0.083
-   Max RTF: 0.157
-============================================================
 
-terminate called without an active exception
-Aborted (core dumped)
+📤 Send thread stopped
+
+📥 Receive thread stopped
+Traceback (most recent call last):
+  File "/home/test1/denoiser/demo/duplex/rp5_full_duplex_modular.py", line 361, in <module>
+    main()
+  File "/home/test1/denoiser/demo/duplex/rp5_full_duplex_modular.py", line 357, in main
+    comm.start()
+  File "/home/test1/denoiser/demo/duplex/rp5_full_duplex_modular.py", line 315, in start
+    duration = time.time() - stats_t._target.__self__.start_time if hasattr(stats_t, '_target') else 0
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FullDuplexModular' object has no attribute 'start_time'
