@@ -1,18 +1,72 @@
-(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ ls -lh models/current/best.th 
--rw-rw-r-- 1 test2 test2 1.7M Oct 28 16:16 models/current/best.th
-
-(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ python -c "import torch
-model = torch.load('models/current/best.th', map_location='cpu')
-print('Parameters:', sum(p.numel() for p in model['model'].values()))
-print('Keys:', list(model.keys()))
-"
+(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ venv_denoiser/bin/python test_realtime.py 
+Loading model...
 Traceback (most recent call last):
-  File "<string>", line 2, in <module>
-  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/venv_denoiser/lib/python3.12/site-packages/torch/serialization.py", line 1529, in load
-    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
-_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, do those steps only if you trust the source of the checkpoint. 
-        (1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
-        (2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
-        WeightsUnpickler error: Unsupported global: GLOBAL denoiser.demucs.Demucs was not an allowed global by default. Please use `torch.serialization.add_safe_globals([denoiser.demucs.Demucs])` or the `torch.serialization.safe_globals([denoiser.demucs.Demucs])` context manager to allowlist this global if you trust this class/function.
+  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/test_realtime.py", line 39, in <module>
+    checkpoint = torch.load(MODEL_PATH, map_location='cpu', weights_only=False)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/venv_denoiser/lib/python3.12/site-packages/torch/serialization.py", line 1484, in load
+    with _open_file_like(f, "rb") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/venv_denoiser/lib/python3.12/site-packages/torch/serialization.py", line 759, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/venv_denoiser/lib/python3.12/site-packages/torch/serialization.py", line 740, in __init__
+    super().__init__(open(name, mode))
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/test1/denoiser/models/best.th'
+(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ ls -lh best.th 
+-rw-rw-r-- 1 test2 test2 1.7M Oct 28 16:16 best.th
+(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ venv_denoiser/bin/python test_realtime.py 
+Loading model...
+Traceback (most recent call last):
+  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/test_realtime.py", line 39, in <module>
+    checkpoint = torch.load(MODEL_PATH, map_location='cpu', weights_only=False)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/venv_denoiser/lib/python3.12/site-packages/torch/serialization.py", line 1484, in load
+    with _open_file_like(f, "rb") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/venv_denoiser/lib/python3.12/site-packages/torch/serialization.py", line 759, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test2/Facebook-Denoiser-in-Raspberry-Pi-5/venv_denoiser/lib/python3.12/site-packages/torch/serialization.py", line 740, in __init__
+    super().__init__(open(name, mode))
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/test1/denoiser/models/best.th'
+(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ venv_denoiser/bin/python test_realtime.py 
+Loading model...
+Compiling model...
+✅ Model ready
 
-Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+============================================================
+🎤 Input: Device 1
+🔊 Output: Device 1
+📦 Processing chunk: 333ms
+🔄 Output buffer: 2000ms
+⏱️  Initial latency: ~2 seconds (buffer fill)
+============================================================
+
+🚀 Starting buffered streaming...
+   🎤 Speak continuously - output will be smooth!
+   ⏳ Wait 2-3 seconds for buffer to fill...
+   Press Ctrl+C to stop
+
+[ 10.1s] Chunks:  30 | RTF: 0.089 | Buffer: 665ms
+[ 20.1s] Chunks:  60 | RTF: 0.088 | Buffer: 661ms
+[ 30.1s] Chunks:  90 | RTF: 0.084 | Buffer: 657ms
+[ 40.1s] Chunks: 120 | RTF: 0.079 | Buffer: 674ms
+[ 50.1s] Chunks: 150 | RTF: 0.081 | Buffer: 670ms
+[ 60.1s] Chunks: 180 | RTF: 0.085 | Buffer: 666ms
+^C
+
+🛑 Stopping...
+
+============================================================
+📊 Final Stats:
+   Chunks processed: 184
+   Runtime: 62.0s
+   Avg RTF: 0.083
+   Max RTF: 0.157
+============================================================
+
+terminate called without an active exception
+Aborted (core dumped)

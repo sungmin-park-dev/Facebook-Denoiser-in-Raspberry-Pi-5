@@ -24,7 +24,7 @@ MODEL_SR = 16000
 CHUNK = 16000  # 333ms @ 48kHz (처리 단위)
 INPUT_DEVICE = 1
 OUTPUT_DEVICE = 1
-MODEL_PATH = '/home/test1/denoiser/models/best.th'
+MODEL_PATH = 'models/best.th'
 
 # 버퍼 설정
 BUFFER_SIZE = 96000  # 2초 버퍼 (부드러운 출력)
