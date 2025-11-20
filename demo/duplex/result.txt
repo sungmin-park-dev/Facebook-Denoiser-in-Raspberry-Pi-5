@@ -1,41 +1,111 @@
+(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ sudo bash demo/duplex/start_rp5b.sh 
+[sudo] password for test2: 
+]]==================================================
+🚀 RP5-B Full-Duplex Launch
+==================================================
+
+⚡ Step 1: Setting CPU to Performance Mode
+---------------------------------------------------
+Current:
+  CPU0: ondemand
+  CPU1: ondemand
+  CPU2: ondemand
+  CPU3: ondemand
+
+Setting to performance...
+Verified:
+  CPU0: performance ✅
+  CPU1: performance ✅
+  CPU2: performance ✅
+  CPU3: performance ✅
+
+⚡ Step 2: Starting Full-Duplex Communication
+---------------------------------------------------
+  Role: RP5-B (Client)
+  Config: rp5b_modular.yaml
+  Buffer: 5 frames
+
+🎛️  Press Enter to toggle processor (Bypass/AI)
+💡 Press 'q' + Enter to quit
+
+==================================================
+
+🤖 Loading Light-32-Depth4...
+📂 Loading Light-32-Depth4 from models/current/best.th
+✅ Model loaded: Light-32-Depth4
+   Description: Optimized for RP5 (RTF 0.092)
+   Parameters: 434K
+   Device: cpu
+⚡ JIT compiling model for faster inference...
+✅ Light-32-Depth4 loaded (JIT optimized)
+📡 UDP receive buffer: 416 KB
+✅ OpusCodec initialized:
+   Sample rate: 16000 Hz
+   Channels: 1
+   Bitrate: 16000 bps
+   Frame size: 320 samples (20ms)
+✅ AudioComm initialized:
+   Peer: 10.42.0.1
+   Send: 10.42.0.1:9998
+   Recv: 0.0.0.0:9999
+✅ FullDuplexModular initialized (Role B):
+   Mic: Device 1
+   Speaker: Device 1
+   Buffer: 30 frames
+   Chunk: 2880 samples (60ms)
+   Processors: 2
+   → [0] Bypass (No Processing)
+     [1] AI Denoiser (Light-32-Depth4)
+📤 Send thread started
+📥 Receive thread started
+
+🎛️  Press Enter to toggle processor, 'q' + Enter to quit
+
+
 🔄 Modular full-duplex communication started
 
 Legend: TX=Sent, RX=Recv, 🎤=Mic, 🔧=Processed, 📥=Decoded, 🔊=Speaker
 🎤 Microphone started
 🔊 Speaker started
-Exception ignored from cffi callback <function _StreamBase.__init__.<locals>.callback_ptr at 0xffff50bcf380>:
-Traceback (most recent call last):
-  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 873, in callback_ptr
-    return _wrap_callback(callback, data, frames, time, status)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 2743, in _wrap_callback
-    callback(*args)
-  File "/home/test1/denoiser/demo/duplex/rp5_full_duplex_modular.py", line 149, in speaker_callback
-    outdata[:, 0] = audio
-    ~~~~~~~^^^^^^
-ValueError: could not broadcast input array from shape (960,) into shape (2880,)
-📊 TX:    82 (16.4/s) | RX:     0 (0.0/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.000 | 🔊 0.000 | ⏱️ 5s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:   166 (16.8/s) | RX:     0 (0.0/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.000 | 🔊 0.000 | ⏱️ 10s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:   246 (49.2/s) | RX:   206 (41.2/s) | 🎤 0.006 | 🔧 0.006 | 📥 0.007 | 🔊 0.134 | ⏱️ 5s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:   498 (50.4/s) | RX:   403 (39.4/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.002 | 🔊 0.004 | ⏱️ 10s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:   747 (49.8/s) | RX:   625 (44.4/s) | 🎤 0.708 | 🔧 0.708 | 📥 1.000 | 🔊 0.892 | ⏱️ 15s | [Bypass (No Processing)] 📤TX-AI0
 1
 
 🔄 Switched to: AI Denoiser (Light-32-Depth4)
 
-🤖 AI RTF: avg=1.867, max=1.867, min=1.867 | Process time: 112.0ms / 60.0ms
-📊 TX:   245 (15.8/s) | RX:     0 (0.0/s) | 🎤 0.009 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 15s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI3
-🤖 AI RTF: avg=1.065, max=1.751, min=0.809 | Process time: 69.0ms / 60.0ms
+🤖 AI RTF: avg=1.548, max=1.548, min=1.548 | Process time: 92.9ms / 60.0ms
+📊 TX:   993 (49.2/s) | RX:   840 (43.0/s) | 🎤 0.142 | 🔧 0.260 | 📥 0.000 | 🔊 1.134 | ⏱️ 20s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
+🤖 AI RTF: avg=0.878, max=1.227, min=0.809 | Process time: 51.3ms / 60.0ms
+🤖 AI RTF: avg=0.869, max=1.317, min=0.795 | Process time: 51.3ms / 60.0ms
+📊 TX:  1245 (50.4/s) | RX:  1026 (37.2/s) | 🎤 0.007 | 🔧 0.000 | 📥 0.003 | 🔊 0.038 | ⏱️ 25s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
+🤖 AI RTF: avg=0.868, max=1.364, min=0.806 | Process time: 52.4ms / 60.0ms
+📊 TX:  1494 (49.8/s) | RX:  1244 (43.6/s) | 🎤 0.006 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 30s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
+🤖 AI RTF: avg=0.882, max=1.299, min=0.800 | Process time: 51.0ms / 60.0ms
+🤖 AI RTF: avg=0.866, max=1.218, min=0.795 | Process time: 50.8ms / 60.0ms
+📊 TX:  1743 (49.8/s) | RX:  1470 (45.2/s) | 🎤 0.004 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 35s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
+🤖 AI RTF: avg=0.871, max=1.321, min=0.810 | Process time: 52.6ms / 60.0ms
+🤖 AI RTF: avg=0.870, max=1.298, min=0.801 | Process time: 52.5ms / 60.0ms
+📊 TX:  1995 (50.4/s) | RX:  1675 (41.0/s) | 🎤 0.005 | 🔧 0.001 | 📥 0.382 | 🔊 0.962 | ⏱️ 40s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
+🤖 AI RTF: avg=0.867, max=1.349, min=0.799 | Process time: 51.5ms / 60.0ms
+📊 TX:  2244 (49.8/s) | RX:  1905 (46.0/s) | 🎤 0.005 | 🔧 0.008 | 📥 0.000 | 🔊 0.000 | ⏱️ 45s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
+🤖 AI RTF: avg=0.877, max=1.274, min=0.807 | Process time: 49.7ms / 60.0ms
+🤖 AI RTF: avg=0.913, max=2.335, min=0.824 | Process time: 53.5ms / 60.0ms
 ^C
 🛑 Stopping...
 
 
+📥 Receive thread stopped
+
 📤 Send thread stopped
 
-📥 Receive thread stopped
-Traceback (most recent call last):
-  File "/home/test1/denoiser/demo/duplex/rp5_full_duplex_modular.py", line 361, in <module>
-    main()
-  File "/home/test1/denoiser/demo/duplex/rp5_full_duplex_modular.py", line 357, in main
-    comm.start()
-  File "/home/test1/denoiser/demo/duplex/rp5_full_duplex_modular.py", line 315, in start
-    duration = time.time() - stats_t._target.__self__.start_time if hasattr(stats_t, '_target') else 0
-                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'FullDuplexModular' object has no attribute 'start_time'
+======================================================================
+📊 Session Statistics:
+   Duration: 48.5s
+   Packets sent: 2415 (49.8/s)
+   Packets received: 2054 (42.4/s)
+======================================================================
+
+
+🔧 Restoring CPU governor to ondemand...
+✅ CPU governor restored
