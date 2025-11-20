@@ -81,12 +81,14 @@ class AIDenoiserProcessor(AudioProcessor):
         start_time = time.perf_counter()
         # ========================
         
-        # Measure input level
-        input_level = np.abs(audio).max()
+        # ===== 입력 레벨 측정 =====
+        input_peak = np.abs(audio).max()
+        input_rms = np.sqrt(np.mean(audio**2))
+        # ==========================
         
         # Input normalization
-        if input_level > 1e-6:
-            audio_normalized = audio / (input_level + 1e-8)
+        if input_peak > 1e-6:
+            audio_normalized = audio / (input_peak + 1e-8)
             audio_normalized = np.clip(audio_normalized, -1.0, 1.0)
         else:
             audio_normalized = audio
@@ -125,22 +127,32 @@ class AIDenoiserProcessor(AudioProcessor):
             # ===========================
         
         # ===== 출력 정규화 강화 =====
-        output_level = np.abs(output).max()
+        output_peak = np.abs(output).max()
+        output_rms = np.sqrt(np.mean(output**2))
         
-        if output_level > 1.0:
+        if output_peak > 1.0:
             # 클리핑 방지: 1.0을 초과하면 스케일 다운
-            output = output / (output_level + 1e-8)
+            output = output / (output_peak + 1e-8)
             output = np.clip(output, -1.0, 1.0)
             
             # 경고 로그
             if self._log_counter % 100 == 0:
-                print(f"⚠️  AI output clipping prevented: {output_level:.3f} → 1.0")
+                print(f"⚠️  AI output clipping prevented: {output_peak:.3f} → 1.0")
         
         # ===== 입력 레벨 복원 (증폭 강화) =====
-        if input_level > 1e-6:
+        if input_peak > 1e-6:
             # 0.95 → 1.05 (약 10% 증폭)
-            output = output * min(input_level * 1.05, 1.0)
+            output = output * min(input_peak * 1.05, 1.0)
         # ====================================
+        
+        # ===== 소음 감쇠량 계산 =====
+        output_rms_final = np.sqrt(np.mean(output**2))
+        
+        if input_rms > 1e-6 and output_rms_final > 1e-6:
+            reduction_db = 20 * np.log10(input_rms / output_rms_final)
+        else:
+            reduction_db = 0.0
+        # ==========================
         
         # ===== 종료 시간 및 RTF 계산 =====
         elapsed_ms = (time.perf_counter() - start_time) * 1000
@@ -155,7 +167,9 @@ class AIDenoiserProcessor(AudioProcessor):
             max_rtf = np.max(self._rtf_samples)
             min_rtf = np.min(self._rtf_samples)
             print(f"🤖 AI RTF: avg={avg_rtf:.3f}, max={max_rtf:.3f}, min={min_rtf:.3f} | "
-                  f"Process time: {elapsed_ms:.1f}ms / {chunk_duration_ms:.1f}ms")
+                  f"Process: {elapsed_ms:.1f}ms/{chunk_duration_ms:.1f}ms | "
+                  f"Noise reduction: {reduction_db:.1f}dB | "
+                  f"RMS: {input_rms:.4f}→{output_rms_final:.4f}")
             self._rtf_samples = []  # 리셋
         # ================================
         
