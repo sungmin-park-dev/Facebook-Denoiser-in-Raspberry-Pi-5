@@ -1,117 +1,55 @@
-venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ sudo bash demo/duplex/start_rp5b.sh 
-==================================================
-🚀 RP5-B Full-Duplex Launch
-==================================================
-
-... (Skipped)...
-
-🔄 Modular full-duplex communication started
-
 Legend: TX=Sent, RX=Recv, 🎤=Mic, 🔧=Processed, 📥=Decoded, 🔊=Speaker
-🎤 Microphone started
-🔊 Speaker started
-📊 TX:   246 (49.2/s) | RX:   234 (46.8/s) | 🎤 0.050 | 🔧 0.050 | 📥 0.147 | 🔊 1.066 | ⏱️ 5s | [Bypass (No Processing)] 📤TX-AI0
-1
-
-🔄 Switched to: AI Denoiser (Light-32-Depth4)
-
-🤖 AI RTF: avg=1.754, max=1.754, min=1.754 | Process: 105.2ms/60.0ms | Noise reduction: -0.4dB | RMS: 0.0226→0.0238
-🤖 AI RTF: avg=0.921, max=1.664, min=0.775 | Process: 47.5ms/60.0ms | Noise reduction: 9.1dB | RMS: 0.0169→0.0059
-📊 TX:   495 (49.8/s) | RX:   468 (46.8/s) | 🎤 0.008 | 🔧 0.048 | 📥 0.192 | 🔊 1.000 | ⏱️ 10s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
-🤖 AI RTF: avg=0.937, max=1.586, min=0.770 | Process: 48.1ms/60.0ms | Noise reduction: 32.9dB | RMS: 0.0017→0.0000
-📊 TX:   741 (49.2/s) | RX:   698 (46.0/s) | 🎤 0.005 | 🔧 0.001 | 📥 0.000 | 🔊 0.000 | ⏱️ 15s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI1
-🤖 AI RTF: avg=1.010, max=1.537, min=0.771 | Process: 68.6ms/60.0ms | Noise reduction: 31.4dB | RMS: 0.0016→0.0000
-1🤖 AI RTF: avg=0.954, max=1.459, min=0.778 | Process: 47.8ms/60.0ms | Noise reduction: 21.7dB | RMS: 0.0020→0.0002
-
-
-🔄 Switched to: Bypass (No Processing)
-
-📊 TX:   996 (51.0/s) | RX:   931 (46.6/s) | 🎤 0.016 | 🔧 0.016 | 📥 0.003 | 🔊 0.001 | ⏱️ 20s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:  1248 (50.4/s) | RX:  1200 (53.8/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.000 | 🔊 0.004 | ⏱️ 25s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:  1497 (49.8/s) | RX:  1418 (43.6/s) | 🎤 0.094 | 🔧 0.094 | 📥 0.053 | 🔊 0.027 | ⏱️ 30s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:  1746 (49.8/s) | RX:  1670 (50.4/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.007 | 🔊 0.007 | ⏱️ 35s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:  1998 (50.4/s) | RX:  1916 (49.2/s) | 🎤 0.121 | 🔧 0.121 | 📥 0.000 | 🔊 0.005 | ⏱️ 40s | [Bypass (No Processing)] 📤TX-AI0
-📡 Packet loss: 81/2000 (4.0%)
-📊 TX:  2247 (49.8/s) | RX:  2125 (41.8/s) | 🎤 0.003 | 🔧 0.003 | 📥 0.006 | 🔊 0.009 | ⏱️ 45s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:  2496 (49.8/s) | RX:  2377 (50.4/s) | 🎤 0.113 | 🔧 0.113 | 📥 0.001 | 🔊 1.013 | ⏱️ 50s | [Bypass (No Processing)] 📤TX-AI0
-1📊 TX:  2748 (50.4/s) | RX:  2617 (48.0/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.000 | 🔊 0.004 | ⏱️ 55s | [Bypass (No Processing)] 📤TX-AI0
-
-
-🔄 Switched to: AI Denoiser (Light-32-Depth4)
-
-🤖 AI RTF: avg=0.956, max=1.510, min=0.773 | Process: 46.5ms/60.0ms | Noise reduction: 2.1dB | RMS: 0.2865→0.2250
-📊 TX:  2985 (47.4/s) | RX:  2845 (45.6/s) | 🎤 0.005 | 🔧 0.023 | 📥 0.004 | 🔊 0.004 | ⏱️ 60s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI3
-🤖 AI RTF: avg=1.055, max=1.713, min=0.783 | Process: 53.7ms/60.0ms | Noise reduction: 26.1dB | RMS: 0.0016→0.0001
-🤖 AI RTF: avg=0.978, max=2.339, min=0.778 | Process: 50.7ms/60.0ms | Noise reduction: 34.6dB | RMS: 0.0717→0.0013
-📊 TX:  3228 (48.6/s) | RX:  3094 (49.8/s) | 🎤 0.006 | 🔧 0.035 | 📥 0.004 | 🔊 0.005 | ⏱️ 65s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI5
-🤖 AI RTF: avg=0.935, max=1.306, min=0.777 | Process: 49.7ms/60.0ms | Noise reduction: 22.3dB | RMS: 0.2852→0.0220
-📊 TX:  3483 (51.0/s) | RX:  3337 (48.6/s) | 🎤 0.250 | 🔧 0.005 | 📥 0.000 | 🔊 0.006 | ⏱️ 70s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI4
-🤖 AI RTF: avg=0.967, max=1.324, min=0.779 | Process: 64.3ms/60.0ms | Noise reduction: 24.3dB | RMS: 0.0187→0.0011
-🤖 AI RTF: avg=0.923, max=1.469, min=0.770 | Process: 47.9ms/60.0ms | Noise reduction: 19.4dB | RMS: 0.0968→0.0104
-📊 TX:  3735 (50.4/s) | RX:  3557 (44.0/s) | 🎤 0.084 | 🔧 0.029 | 📥 0.006 | 🔊 0.008 | ⏱️ 75s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI3
-🤖 AI RTF: avg=1.055, max=1.512, min=0.789 | Process: 47.3ms/60.0ms | Noise reduction: 33.8dB | RMS: 0.0160→0.0003
-🤖 AI RTF: avg=0.937, max=1.455, min=0.769 | Process: 49.7ms/60.0ms | Noise reduction: 13.4dB | RMS: 0.0411→0.0088
-📊 TX:  3981 (49.2/s) | RX:  3806 (49.8/s) | 🎤 0.034 | 🔧 0.123 | 📥 0.010 | 🔊 0.238 | ⏱️ 80s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI4
-🤖 AI RTF: avg=0.937, max=1.297, min=0.782 | Process: 50.0ms/60.0ms | Noise reduction: 33.9dB | RMS: 0.0022→0.0000
-📊 TX:  4239 (51.6/s) | RX:  4055 (49.8/s) | 🎤 0.089 | 🔧 0.035 | 📥 0.000 | 🔊 0.013 | ⏱️ 85s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI2
-🤖 AI RTF: avg=0.972, max=1.373, min=0.774 | Process: 54.1ms/60.0ms | Noise reduction: 32.1dB | RMS: 0.0487→0.0012
-🤖 AI RTF: avg=0.922, max=1.208, min=0.777 | Process: 48.6ms/60.0ms | Noise reduction: 30.7dB | RMS: 0.1103→0.0032
-📊 TX:  4488 (49.8/s) | RX:  4283 (45.6/s) | 🎤 0.109 | 🔧 0.010 | 📥 0.014 | 🔊 0.015 | ⏱️ 90s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI2
-🤖 AI RTF: avg=1.049, max=1.518, min=0.788 | Process: 47.3ms/60.0ms | Noise reduction: 28.3dB | RMS: 0.0305→0.0012
-🤖 AI RTF: avg=0.926, max=1.389, min=0.779 | Process: 48.4ms/60.0ms | Noise reduction: 28.9dB | RMS: 0.0035→0.0001
-📊 TX:  4737 (49.8/s) | RX:  4535 (50.4/s) | 🎤 0.647 | 🔧 0.072 | 📥 0.241 | 🔊 0.019 | ⏱️ 95s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI2
-🤖 AI RTF: avg=0.949, max=1.370, min=0.776 | Process: 46.9ms/60.0ms | Noise reduction: 31.3dB | RMS: 0.0018→0.0000
-📊 TX:  4992 (51.0/s) | RX:  4781 (49.2/s) | 🎤 0.028 | 🔧 0.014 | 📥 0.000 | 🔊 0.012 | ⏱️ 100s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI1
-🤖 AI RTF: avg=0.967, max=1.369, min=0.774 | Process: 47.2ms/60.0ms | Noise reduction: 24.2dB | RMS: 0.0119→0.0007
-🤖 AI RTF: avg=0.906, max=1.214, min=0.774 | Process: 46.9ms/60.0ms | Noise reduction: 19.8dB | RMS: 0.0039→0.0004
-📊 TX:  5238 (49.2/s) | RX:  5001 (44.0/s) | 🎤 0.016 | 🔧 0.002 | 📥 0.008 | 🔊 0.008 | ⏱️ 105s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI2
-🤖 AI RTF: avg=1.052, max=1.522, min=0.780 | Process: 50.0ms/60.0ms | Noise reduction: 21.4dB | RMS: 0.2658→0.0227
-🤖 AI RTF: avg=0.934, max=1.500, min=0.775 | Process: 51.4ms/60.0ms | Noise reduction: 30.8dB | RMS: 0.1694→0.0049
-📊 TX:  5487 (49.8/s) | RX:  5253 (50.4/s) | 🎤 0.010 | 🔧 0.001 | 📥 0.006 | 🔊 0.007 | ⏱️ 110s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI2
-🤖 AI RTF: avg=0.945, max=1.621, min=0.775 | Process: 48.4ms/60.0ms | Noise reduction: 22.8dB | RMS: 0.0362→0.0026
-📊 TX:  5739 (50.4/s) | RX:  5498 (49.0/s) | 🎤 0.012 | 🔧 0.000 | 📥 0.000 | 🔊 0.006 | ⏱️ 115s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI2
-🤖 AI RTF: avg=0.973, max=1.308, min=0.783 | Process: 47.4ms/60.0ms | Noise reduction: 30.7dB | RMS: 0.0039→0.0001
-0🤖 AI RTF: avg=0.919, max=1.227, min=0.773 | Process: 46.5ms/60.0ms | Noise reduction: 28.2dB | RMS: 0.0021→0.0001
-
-
-🔄 Switched to: Bypass (No Processing)
-
-📊 TX:  5997 (51.6/s) | RX:  5736 (47.6/s) | 🎤 0.205 | 🔧 0.205 | 📥 0.008 | 🔊 0.108 | ⏱️ 120s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:  6246 (49.8/s) | RX:  5988 (50.4/s) | 🎤 0.050 | 🔧 0.050 | 📥 0.005 | 🔊 0.008 | ⏱️ 125s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:  6498 (50.4/s) | RX:  6234 (49.2/s) | 🎤 0.053 | 🔧 0.053 | 📥 0.008 | 🔊 0.020 | ⏱️ 130s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:  6747 (49.8/s) | RX:  6465 (46.2/s) | 🎤 0.010 | 🔧 0.010 | 📥 0.004 | 🔊 0.006 | ⏱️ 135s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:  6996 (49.8/s) | RX:  6717 (50.4/s) | 🎤 0.037 | 🔧 0.037 | 📥 0.004 | 🔊 0.005 | ⏱️ 140s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:  7248 (50.4/s) | RX:  6963 (49.2/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.003 | 🔊 0.003 | ⏱️ 145s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:  7497 (49.8/s) | RX:  7177 (42.8/s) | 🎤 0.078 | 🔧 0.078 | 📥 0.005 | 🔊 0.006 | ⏱️ 150s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:  7746 (49.8/s) | RX:  7429 (50.4/s) | 🎤 0.034 | 🔧 0.034 | 📥 0.004 | 🔊 0.005 | ⏱️ 155s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:  7998 (50.4/s) | RX:  7672 (48.6/s) | 🎤 0.129 | 🔧 0.129 | 📥 0.004 | 🔊 0.005 | ⏱️ 160s | [Bypass (No Processing)] 📤TX-AI0
-1
-
-🔄 Switched to: AI Denoiser (Light-32-Depth4)
-
-📊 TX:  8244 (49.2/s) | RX:  7885 (42.6/s) | 🎤 0.925 | 🔧 0.600 | 📥 0.043 | 🔊 0.040 | ⏱️ 165s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
-🤖 AI RTF: avg=0.993, max=1.492, min=0.780 | Process: 50.1ms/60.0ms | Noise reduction: 25.7dB | RMS: 0.2665→0.0137
-🤖 AI RTF: avg=0.968, max=3.193, min=0.777 | Process: 50.2ms/60.0ms | Noise reduction: 29.3dB | RMS: 0.0420→0.0014
-📊 TX:  8490 (49.2/s) | RX:  8134 (49.8/s) | 🎤 0.095 | 🔧 0.005 | 📥 0.005 | 🔊 0.006 | ⏱️ 170s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI1
-🤖 AI RTF: avg=1.048, max=1.646, min=0.786 | Process: 47.2ms/60.0ms | Noise reduction: 19.0dB | RMS: 0.0256→0.0029
-🤖 AI RTF: avg=0.953, max=1.614, min=0.783 | Process: 48.2ms/60.0ms | Noise reduction: 18.3dB | RMS: 0.0262→0.0032
-📊 TX:  8736 (49.2/s) | RX:  8377 (48.6/s) | 🎤 0.134 | 🔧 0.731 | 📥 0.000 | 🔊 0.027 | ⏱️ 175s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI3
-🤖 AI RTF: avg=0.946, max=1.333, min=0.769 | Process: 50.1ms/60.0ms | Noise reduction: 18.3dB | RMS: 0.0249→0.0030
+    self.run()
+  File "/usr/lib/python3.12/threading.py", line 1010, in run
+    self.run()
+  File "/usr/lib/python3.12/threading.py", line 1010, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/test1/denoiser/demo/duplex/rp5_full_duplex_modular.py", line 232, in recv_thread
+    with sd.OutputStream(
+         ^^^^^^^^^^^^^^^^
+  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 1515, in __init__
+    self._target(*self._args, **self._kwargs)
+  File "/home/test1/denoiser/demo/duplex/rp5_full_duplex_modular.py", line 165, in send_thread
+    _StreamBase.__init__(self, kind='output', wrap_callback='array',
+  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 909, in __init__
+    with sd.InputStream(
+         ^^^^^^^^^^^^^^^
+  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 1440, in __init__
+    _check(_lib.Pa_OpenStream(self._ptr, iparameters, oparameters,
+  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 2804, in _check
+    _StreamBase.__init__(self, kind='input', wrap_callback='array',
+  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 909, in __init__
+    raise PortAudioError(errormsg, err)
+sounddevice.PortAudioError: Error opening OutputStream: Sample format not supported [PaErrorCode -9994]
+    _check(_lib.Pa_OpenStream(self._ptr, iparameters, oparameters,
+  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 2804, in _check
+    raise PortAudioError(errormsg, err)
+sounddevice.PortAudioError: Error opening InputStream: Invalid number of channels [PaErrorCode -9998]
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 5s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 10s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 15s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 20s | [Bypass (No Processing)] 📤TX-AI0
+^[[A📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 25s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 30s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 35s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 40s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 45s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 50s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 55s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 60s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 65s | [Bypass (No Processing)] 📤TX-AI0
 ^C
 🛑 Stopping...
 
 
-📤 Send thread stopped
-
-📥 Receive thread stopped
-
 ======================================================================
 📊 Session Statistics:
-   Duration: 179.6s
-   Packets sent: 8967 (49.9/s)
-   Packets received: 8582 (47.8/s)
+   Duration: 65.5s
+   Packets sent: 0 (0.0/s)
+   Packets received: 0 (0.0/s)
 ======================================================================
 
 
 🔧 Restoring CPU governor to ondemand...
 ✅ CPU governor restored
+test1@test1-desktop:~/denoiser$ 
