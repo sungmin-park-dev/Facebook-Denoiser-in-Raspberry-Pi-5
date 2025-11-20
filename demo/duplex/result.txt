@@ -1,0 +1,97 @@
+test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ sudo bash demo/duplex/start_rp5b.sh 
+[sudo] password for test2: 
+==================================================
+🚀 RP5-B Full-Duplex Launch
+==================================================
+
+⚡ Step 1: Setting CPU to Performance Mode
+---------------------------------------------------
+Current:
+  CPU0: performance
+  CPU1: performance
+  CPU2: performance
+  CPU3: performance
+
+Setting to performance...
+Verified:
+  CPU0: performance ✅
+  CPU1: performance ✅
+  CPU2: performance ✅
+  CPU3: performance ✅
+
+⚡ Step 2: Starting Full-Duplex Communication
+---------------------------------------------------
+  Role: RP5-B (Client)
+  Config: rp5b_modular.yaml
+  Buffer: 5 frames
+
+🎛️  Press Enter to toggle processor (Bypass/AI)
+💡 Press 'q' + Enter to quit
+
+==================================================
+
+🤖 Loading Light-32-Depth4...
+📂 Loading Light-32-Depth4 from models/current/best.th
+✅ Model loaded: Light-32-Depth4
+   Description: Optimized for RP5 (RTF 0.092)
+   Parameters: 434K
+   Device: cpu
+⚡ JIT compiling model for faster inference...
+✅ Light-32-Depth4 loaded (JIT optimized)
+✅ OpusCodec initialized:
+   Sample rate: 16000 Hz
+   Channels: 1
+   Bitrate: 16000 bps
+   Frame size: 320 samples (20ms)
+✅ AudioComm initialized:
+   Peer: 10.42.0.1
+   Send: 10.42.0.1:9998
+   Recv: 0.0.0.0:9999
+✅ FullDuplexModular initialized (Role B):
+   Mic: Device 1
+   Speaker: Device 1
+   Buffer: 30 frames
+   Processors: 2
+   → [0] Bypass (No Processing)
+     [1] AI Denoiser (Light-32-Depth4)
+📤 Send thread started
+📥 Receive thread started
+
+🔄 Modular full-duplex communication started
+
+🎛️  Press Enter to toggle processor, 'q' + Enter to quit
+Legend: TX=Sent, RX=Recv, 🎤=Mic, 🔧=Processed, 📥=Decoded, 🔊=Speaker
+🔊 Speaker started
+🎤 Microphone started
+📊 TX:   348 (49.7/s) | RX:   328 (46.8/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.003 | 🔊 0.003 | ⏱️ 7s | [Bypass (No Processing)] 📤TX-AI1
+
+🔄 Switched to: AI Denoiser (Light-32-Depth4)
+
+📊 TX:   495 (33.0/s) | RX:   603 (40.2/s) | 🎤 0.005 | 🔧 1.124 | 📥 0.000 | 🔊 0.000 | ⏱️ 15s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI📉 Downsample: RMS 0.2542→0.2542 (1.00x) | Peak 0.820→0.820 (1.00x)
+📊 TX:   769 (25.6/s) | RX:   954 (31.8/s) | 🎤 0.005 | 🔧 0.000 | 📥 0.004 | 🔊 0.003 | ⏱️ 30s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
+
+🔄 Switched to: Bypass (No Processing)
+
+📊 TX:   997 (29.3/s) | RX:  1140 (33.5/s) | 🎤 0.060 | 🔧 0.059 | 📥 0.974 | 🔊 0.003 | ⏱️ 34s | [Bypass (No Processing)] 📤TX-AI📉 Downsample: RMS 0.2055→0.2056 (1.00x) | Peak 0.635→0.635 (1.00x)
+📊 TX:  1497 (34.0/s) | RX:  1492 (33.9/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.847 | 🔊 0.848 | ⏱️ 44s | [Bypass (No Processing)] 📤TX-AI📉 Downsample: RMS 0.0020→0.0020 (1.00x) | Peak 0.005→0.005 (0.99x)
+📊 TX:  1997 (37.0/s) | RX:  1672 (31.0/s) | 🎤 0.005 | 🔧 0.005 | 📥 0.056 | 🔊 0.000 | ⏱️ 54s | [Bypass (No Processing)] 📤TX-AI📉 Downsample: RMS 0.0543→0.0543 (1.00x) | Peak 0.241→0.240 (1.00x)
+📊 TX:  2497 (39.0/s) | RX:  1853 (28.9/s) | 🎤 0.006 | 🔧 0.006 | 📥 0.000 | 🔊 0.000 | ⏱️ 64s | [Bypass (No Processing)] 📤TX-AI📉 Downsample: RMS 0.0014→0.0014 (1.00x) | Peak 0.006→0.006 (1.00x)
+📊 TX:  2997 (40.5/s) | RX:  2047 (27.7/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.000 | 🔊 0.000 | ⏱️ 74s | [Bypass (No Processing)] 📤TX-AI📉 Downsample: RMS 0.0010→0.0010 (1.00x) | Peak 0.004→0.004 (1.00x)
+📊 TX:  3498 (41.6/s) | RX:  2227 (26.5/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.000 | 🔊 0.000 | ⏱️ 84s | [Bypass (No Processing)] 📤TX-AI📉 Downsample: RMS 0.0011→0.0011 (1.00x) | Peak 0.003→0.003 (1.00x)
+📊 TX:  3547 (41.7/s) | RX:  2243 (26.4/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.000 | 🔊 0.000 | ⏱️ 85s | [Bypass (No Processing)] 📤TX-AI^C
+
+🛑 Stopping...
+
+📥 Receive thread stopped
+
+📤 Send thread stopped
+
+======================================================================
+📊 Session Statistics:
+   Duration: 85.2s
+   Packets sent: 3558 (41.7/s)
+   Packets received: 2247 (26.4/s)
+======================================================================
+
+🔧 Restoring CPU governor to ondemand...
+✅ CPU governor restored
