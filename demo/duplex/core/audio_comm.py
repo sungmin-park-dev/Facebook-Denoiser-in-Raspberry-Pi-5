@@ -53,9 +53,21 @@ class AudioComm:
         
         # UDP sockets
         self.send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        
+        # ===== UDP 수신 버퍼 크기 증가 =====
+        # 기본값: ~200KB
+        # 증가값: 1MB (약 50초 분량의 오디오)
+        UDP_RECV_BUFFER = 1024 * 1024  # 1MB
+        
         self.recv_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.recv_socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, UDP_RECV_BUFFER)
         self.recv_socket.bind(('0.0.0.0', self.recv_port))
         self.recv_socket.settimeout(0.1)
+        
+        # 실제 설정된 버퍼 크기 확인
+        actual_buffer = self.recv_socket.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF)
+        print(f"📡 UDP receive buffer: {actual_buffer / 1024:.0f} KB")
+        # ===================================
         
         # Opus codec
         self.codec = OpusCodec(
@@ -69,68 +81,46 @@ class AudioComm:
         self.downsample_ratio = self.sample_rate_16k / self.sample_rate_48k
         self.upsample_ratio = self.sample_rate_48k / self.sample_rate_16k
         
+        # ===== 패킷 손실 모니터링 =====
+        self.timeout_count = 0
+        self.recv_count = 0
+        self._loss_log_interval = 500  # 500번마다 손실률 출력
+        # ============================
+        
         print(f"✅ AudioComm initialized:")
         print(f"   Peer: {peer_ip}")
         print(f"   Send: {peer_ip}:{send_port}")
         print(f"   Recv: 0.0.0.0:{recv_port}")
     
 
-    # def downsample_48k_to_16k(self, audio_48k: np.ndarray) -> np.ndarray:
-    #     """
-    #     Downsample from 48kHz to 16kHz using polyphase filter
-        
-    #     Args:
-    #         audio_48k: Audio at 48kHz
-        
-    #     Returns:
-    #         Audio at 16kHz (float32, mono)
-    #     """
-    #     # Flatten if needed
-    #     if audio_48k.ndim > 1:
-    #         audio_48k = audio_48k.flatten()
-        
-    #     # Measure input level
-    #     input_level = np.abs(audio_48k).max()
-        
-    #     # Polyphase resampling: 48kHz → 16kHz (down by 3)
-    #     audio_16k = signal.resample_poly(audio_48k, 1, 3)
-        
-    #     # Measure output level
-    #     output_level = np.abs(audio_16k).max()
-        
-    #     # ===== 추가: Gain 보정 =====
-    #     if output_level > 1e-6 and input_level > 1e-6:
-    #         # Restore original peak level
-    #         gain = input_level / (output_level + 1e-8)
-    #         gain = np.clip(gain, 0.5, 2.0)  # Limit gain range
-    #         audio_16k = audio_16k * gain
-    #     # ===========================
-        
-    #     return audio_16k.astype(np.float32)
-
     def downsample_48k_to_16k(self, audio_48k: np.ndarray) -> np.ndarray:
+        """
+        Downsample from 48kHz to 16kHz using polyphase filter
+        
+        Args:
+            audio_48k: Audio at 48kHz
+        
+        Returns:
+            Audio at 16kHz (float32, mono)
+        """
+        # Flatten if needed
         if audio_48k.ndim > 1:
             audio_48k = audio_48k.flatten()
         
-        # 🔧 에너지 측정 추가
-        input_rms = np.sqrt(np.mean(audio_48k**2))
-        input_peak = np.abs(audio_48k).max()
+        # Measure input level
+        input_level = np.abs(audio_48k).max()
         
+        # Polyphase resampling: 48kHz → 16kHz (down by 3)
         audio_16k = signal.resample_poly(audio_48k, 1, 3)
         
-        output_rms = np.sqrt(np.mean(audio_16k**2))
-        output_peak = np.abs(audio_16k).max()
+        # Measure output level
+        output_level = np.abs(audio_16k).max()
         
-        # 로그 (500 chunk마다 = 10초)
-        if not hasattr(self, '_downsample_counter'):
-            self._downsample_counter = 0
-        self._downsample_counter += 1
-        
-        if self._downsample_counter % 500 == 0:
-            rms_ratio = output_rms / (input_rms + 1e-8)
-            peak_ratio = output_peak / (input_peak + 1e-8)
-            print(f"📉 Downsample: RMS {input_rms:.4f}→{output_rms:.4f} ({rms_ratio:.2f}x) | "
-                f"Peak {input_peak:.3f}→{output_peak:.3f} ({peak_ratio:.2f}x)")
+        # Gain compensation
+        if output_level > 1e-6 and input_level > 1e-6:
+            gain = input_level / (output_level + 1e-8)
+            gain = np.clip(gain, 0.5, 2.0)
+            audio_16k = audio_16k * gain
         
         return audio_16k.astype(np.float32)
     
@@ -146,7 +136,7 @@ class AudioComm:
             Audio at 48kHz (float32, mono)
         """
         # Polyphase resampling: 16kHz → 48kHz (up by 3)
-        audio_48k = signal.resample_poly(audio_16k, 3, 1)  # ← 변경!
+        audio_48k = signal.resample_poly(audio_16k, 3, 1)
         
         return audio_48k.astype(np.float32)
     
@@ -189,9 +179,23 @@ class AudioComm:
             # Opus decode (returns float32 [-1, 1])
             audio_16k = self.codec.decode(data)
             
+            # ===== 수신 카운트 =====
+            self.recv_count += 1
+            # ======================
+            
             return audio_16k
             
         except socket.timeout:
+            # ===== Timeout 카운트 =====
+            self.timeout_count += 1
+            
+            # 주기적으로 손실률 출력
+            if (self.recv_count + self.timeout_count) % self._loss_log_interval == 0:
+                total = self.recv_count + self.timeout_count
+                loss_rate = (self.timeout_count / total) * 100 if total > 0 else 0
+                print(f"📡 Packet loss: {self.timeout_count}/{total} ({loss_rate:.1f}%)")
+            # =========================
+            
             # Return silence on timeout
             return np.zeros(320, dtype=np.float32)
         except Exception as e:

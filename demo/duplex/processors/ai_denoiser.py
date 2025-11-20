@@ -9,6 +9,7 @@ import torch
 from pathlib import Path
 import sys
 import warnings
+import time
 
 # Add project root to path
 project_root = Path(__file__).resolve().parents[3]
@@ -52,11 +53,16 @@ class AIDenoiserProcessor(AudioProcessor):
         
         # Logging
         self._log_counter = 0
+        
+        # ===== RTF 측정용 =====
+        self._rtf_samples = []
+        self._rtf_log_interval = 50  # 50번마다 RTF 출력
+        # ====================
     
     
     def process(self, audio: np.ndarray) -> np.ndarray:
         """
-        Apply AI denoising with input normalization
+        Apply AI denoising with input/output normalization
         
         Args:
             audio: Input audio (16kHz, mono, float32)
@@ -64,56 +70,68 @@ class AIDenoiserProcessor(AudioProcessor):
         Returns:
             Denoised audio (same format)
         """
+        # ===== 시작 시간 측정 =====
+        start_time = time.perf_counter()
+        # ========================
+        
         # Measure input level
         input_level = np.abs(audio).max()
         
-        # ===== 추가: 입력 정규화 =====
+        # Input normalization
         if input_level > 1e-6:
-            # Normalize to peak = 1.0
             audio_normalized = audio / (input_level + 1e-8)
             audio_normalized = np.clip(audio_normalized, -1.0, 1.0)
         else:
-            # Silent audio, no normalization
             audio_normalized = audio
-        # ============================
         
         with torch.no_grad():
             # Convert to tensor: [batch=1, channels=1, time]
-            audio_tensor = torch.from_numpy(audio_normalized).float().unsqueeze(0).unsqueeze(0)  # ← 변경!
+            audio_tensor = torch.from_numpy(audio_normalized).float().unsqueeze(0).unsqueeze(0)
             
-            # Denoise
-            denoised = self.denoiser(audio_tensor)
+            # AI denoising
+            output_tensor = self.denoiser(audio_tensor)
             
             # Convert back to numpy
-            audio_denoised = denoised.squeeze().cpu().numpy()
+            output = output_tensor.squeeze().numpy()
         
-        # ===== 추가: 원래 스케일로 복원 =====
+        # ===== 출력 정규화 강화 =====
+        output_level = np.abs(output).max()
+        
+        if output_level > 1.0:
+            # 클리핑 방지: 1.0을 초과하면 스케일 다운
+            output = output / (output_level + 1e-8)
+            output = np.clip(output, -1.0, 1.0)
+            
+            # 경고 로그
+            if self._log_counter % 100 == 0:
+                print(f"⚠️  AI output clipping prevented: {output_level:.3f} → 1.0")
+        
+        # 입력 레벨 복원 (but 1.0 이하로 제한)
         if input_level > 1e-6:
-            audio_denoised = audio_denoised * input_level
-        # ====================================
+            output = output * min(input_level, 0.95)  # 0.95로 제한 (여유)
+        # ==========================
         
-        # Measure output level
-        output_level = np.abs(audio_denoised).max()
+        # ===== 종료 시간 및 RTF 계산 =====
+        elapsed_ms = (time.perf_counter() - start_time) * 1000
+        chunk_duration_ms = len(audio) / 16.0  # 16kHz → ms
+        rtf = elapsed_ms / chunk_duration_ms
         
-        # Log every 10 seconds (500 chunks @ 20ms)
+        self._rtf_samples.append(rtf)
+        
+        # RTF 통계 출력
+        if self._log_counter % self._rtf_log_interval == 0 and len(self._rtf_samples) > 0:
+            avg_rtf = np.mean(self._rtf_samples)
+            max_rtf = np.max(self._rtf_samples)
+            min_rtf = np.min(self._rtf_samples)
+            print(f"🤖 AI RTF: avg={avg_rtf:.3f}, max={max_rtf:.3f}, min={min_rtf:.3f} | "
+                  f"Process time: {elapsed_ms:.1f}ms / {chunk_duration_ms:.1f}ms")
+            self._rtf_samples = []  # 리셋
+        # ================================
+        
         self._log_counter += 1
-        if self._log_counter % 500 == 0:
-            if input_level > 0.001:
-                reduction = (1 - output_level / (input_level + 1e-8)) * 100
-                print(f"🤖 AI Active: In={input_level:.3f} → Out={output_level:.3f} (Noise ↓{reduction:.1f}%)")
-        
-        return audio_denoised
-
-
-
-    def get_name(self) -> str:
-        """Get processor name"""
-        return f"AI Denoiser ({self.model_name})"
+        return output.astype(np.float32)
     
-    def get_stats(self) -> dict:
-        """Get stats"""
-        return {
-            'type': 'ai_denoiser',
-            'model': self.model_name,
-            'rtf': 0.05  # Approximate (with JIT)
-        }
+    
+    def get_name(self) -> str:
+        """Return processor name"""
+        return f"AI Denoiser ({self.model_name})"
