@@ -127,6 +127,41 @@ def activate_venv(project_dir, venv_name):
     python_version = run_cmd(f"{venv_python} --version")
     print(f"{Colors.GREEN}✅ {python_version} ({venv_name}){Colors.NC}")
 
+
+def set_cpu_governor(mode: str) -> bool:
+    """
+    Set CPU governor mode
+    
+    Args:
+        mode: 'performance' or 'ondemand'
+    
+    Returns:
+        True if successful
+    """
+    try:
+        cmd = f"echo {mode} | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            print(f"✅ CPU governor set to: {mode}")
+            return True
+        else:
+            print(f"⚠️  Failed to set CPU governor (may need sudo)")
+            return False
+    except Exception as e:
+        print(f"⚠️  CPU governor error: {e}")
+        return False
+
+
+def get_cpu_governor() -> str:
+    """Get current CPU governor mode"""
+    try:
+        with open('/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor', 'r') as f:
+            return f.read().strip()
+    except:
+        return "unknown"
+    
+
 def main():
     # RP5-B Configuration
     CONFIG = {
@@ -135,10 +170,10 @@ def main():
         "venv": "venv_denoiser",
         "peer_ip": "10.42.0.1",
         "my_ip": "10.42.0.224",
-        "wifi_ssid": "RP5-Direct",
-        "wifi_password": "tactical123",
-        "mic_device": None,      # None = interactive
-        "speaker_device": None,  # None = interactive
+        "ssid": "RP5-WiFi",        # ← 추가
+        "password": "password123",  # ← 추가
+        "mic_device": None,
+        "speaker_device": None,
     }
     
     print(f"{Colors.BLUE}{'='*60}{Colors.NC}")
@@ -146,13 +181,25 @@ def main():
     print(f"{Colors.BLUE}{'='*60}{Colors.NC}")
     print()
     
+    # ===== CPU Performance 모드 켜기 =====
+    original_governor = get_cpu_governor()
+    print(f"🔧 Current CPU governor: {original_governor}")
+    
+    if original_governor != "performance":
+        print("⚡ Setting CPU to performance mode...")
+        set_cpu_governor("performance")
+    else:
+        print("✅ Already in performance mode")
+    print()
+    # ====================================
+
     try:
         # 1. WiFi Direct
-        check_wifi_direct(CONFIG['my_ip'], CONFIG['wifi_ssid'], CONFIG['wifi_password'])
+        check_wifi_direct(CONFIG['my_ip'], CONFIG['ssid'], CONFIG['password'])  # ← 3개 전달
         print()
-        
+
         # 2. Git sync --> Removed
-        
+
         # 3. Python venv
         activate_venv(CONFIG['project_dir'], CONFIG['venv'])
         print()
@@ -207,12 +254,18 @@ def main():
         
     except KeyboardInterrupt:
         print(f"\n{Colors.YELLOW}👋 Stopped{Colors.NC}")
-        sys.exit(0)
+    
     except Exception as e:
         print(f"{Colors.RED}❌ Error: {e}{Colors.NC}")
         import traceback
         traceback.print_exc()
-        sys.exit(1)
+    
+    finally:
+        # ===== CPU 원래대로 복구 =====
+        if original_governor != "performance":
+            print(f"\n🔧 Restoring CPU governor to: {original_governor}")
+            set_cpu_governor(original_governor)
+        # ==============================
 
 if __name__ == "__main__":
     main()
