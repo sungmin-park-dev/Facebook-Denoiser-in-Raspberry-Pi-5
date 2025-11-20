@@ -158,6 +158,10 @@ class FullDuplexModular:
         """Sending thread: Mic → Process → Encode → Send"""
         print("📤 Send thread started")
         
+        # 배치 처리용 버퍼
+        batch_buffer = []
+        batch_size = 2  # 2개씩 모아서 처리 (60ms * 2 = 120ms)
+        
         with sd.InputStream(
             device=self.mic_device,
             channels=2,
@@ -167,6 +171,7 @@ class FullDuplexModular:
             callback=self.mic_callback
         ):
             print("🎤 Microphone started")
+            print(f"⚡ Batch processing: {batch_size} chunks (AI processes every {batch_size * 60}ms)")
             
             while self.running:
                 try:
@@ -176,25 +181,43 @@ class FullDuplexModular:
                     # Downsample to 16kHz (2880 → 960 samples)
                     audio_16k = self.comm.downsample_48k_to_16k(audio_48k)
                     
-                    # Process with current processor (960 samples)
-                    processor = self.processors[self.current_idx]
-                    audio_processed = processor.process(audio_16k)
-                    self.processed_level = np.abs(audio_processed).max()
+                    # Add to batch buffer
+                    batch_buffer.append(audio_16k)
                     
-                    # Split into 320-sample chunks for Opus (20ms each)
-                    # 960 samples = 3 chunks of 320
-                    for i in range(3):
-                        chunk_320 = audio_processed[i*320:(i+1)*320]
+                    # Process when batch is full (or in bypass mode)
+                    processor = self.processors[self.current_idx]
+                    is_bypass = (self.current_idx == 0)
+                    
+                    if len(batch_buffer) >= batch_size or is_bypass:
+                        # Concatenate batch
+                        if len(batch_buffer) > 1:
+                            audio_batch = np.concatenate(batch_buffer)
+                        else:
+                            audio_batch = batch_buffer[0]
                         
-                        # Send via UDP
-                        if self.comm.send(chunk_320):
-                            self.packets_sent += 1
+                        # Process batch (960 or 1920 samples)
+                        audio_processed = processor.process(audio_batch)
+                        self.processed_level = np.abs(audio_processed).max()
+                        
+                        # Split into 320-sample chunks for Opus
+                        num_chunks = len(audio_processed) // 320
+                        for i in range(num_chunks):
+                            chunk_320 = audio_processed[i*320:(i+1)*320]
+                            
+                            # Send via UDP
+                            if self.comm.send(chunk_320):
+                                self.packets_sent += 1
+                        
+                        # Clear batch buffer
+                        batch_buffer = []
 
                 except queue.Empty:
                     continue
                 except Exception as e:
                     if self.running:
                         print(f"\n❌ Send error: {e}")
+                        import traceback
+                        traceback.print_exc()
         
         print("\n📤 Send thread stopped")
     

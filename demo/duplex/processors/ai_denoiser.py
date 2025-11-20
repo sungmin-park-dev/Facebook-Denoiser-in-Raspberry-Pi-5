@@ -52,10 +52,10 @@ class AIDenoiserProcessor(AudioProcessor):
         print(f"✅ {model_name} loaded (JIT optimized)")
         
         # ===== 텐서 재사용 (메모리 프리할당) =====
-        self.max_length = 960  # 60ms @ 16kHz
+        self.max_length = 1920  # 60ms * 2 = 120ms @ 16kHz (배치 처리 대응)
         self.input_tensor = torch.zeros(1, 1, self.max_length, dtype=torch.float32)
         self.output_buffer = np.zeros(self.max_length, dtype=np.float32)
-        print(f"⚡ Pre-allocated tensors for {self.max_length} samples")
+        print(f"⚡ Pre-allocated tensors for {self.max_length} samples (batch support)")
         # ========================================
         
         # Logging
@@ -138,6 +138,22 @@ class AIDenoiserProcessor(AudioProcessor):
             # 경고 로그
             if self._log_counter % 100 == 0:
                 print(f"⚠️  AI output clipping prevented: {output_peak:.3f} → 1.0")
+        
+        # ===== 감쇠량 제한 (음성 보존) =====
+        if input_rms > 1e-6:
+            # 최대 70% 감쇠로 제한 (최소 30% 유지)
+            min_output_rms = input_rms * 0.3  # ~-10dB 제한
+            
+            if output_rms < min_output_rms:
+                # 출력 증폭해서 음성 보존
+                gain = min_output_rms / (output_rms + 1e-8)
+                gain = np.clip(gain, 1.0, 3.0)  # 최대 3배까지만
+                output = output * gain
+                output_rms = min_output_rms  # 업데이트
+                
+                if self._log_counter % 100 == 0:
+                    print(f"🔊 Voice preservation: gain={gain:.2f}x")
+        # =====================================
         
         # ===== 입력 레벨 복원 (증폭 강화) =====
         if input_peak > 1e-6:
