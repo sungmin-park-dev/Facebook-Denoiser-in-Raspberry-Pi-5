@@ -94,6 +94,7 @@ class FullDuplexModular:
         self.packets_sent = 0
         self.packets_received = 0
         self.running = False
+        self.start_time = 0
         
         # Audio levels for stats
         self.mic_level = 0.0
@@ -169,20 +170,25 @@ class FullDuplexModular:
             
             while self.running:
                 try:
-                    # Get audio from mic
+                    # Get audio from mic (2880 samples @ 48kHz)
                     audio_48k = self.send_queue.get(timeout=0.1)
                     
-                    # Downsample to 16kHz
+                    # Downsample to 16kHz (2880 → 960 samples)
                     audio_16k = self.comm.downsample_48k_to_16k(audio_48k)
                     
-                    # Process with current processor
+                    # Process with current processor (960 samples)
                     processor = self.processors[self.current_idx]
                     audio_processed = processor.process(audio_16k)
                     self.processed_level = np.abs(audio_processed).max()
                     
-                    # Send via UDP
-                    if self.comm.send(audio_processed):
-                        self.packets_sent += 1
+                    # Split into 320-sample chunks for Opus (20ms each)
+                    # 960 samples = 3 chunks of 320
+                    for i in range(3):
+                        chunk_320 = audio_processed[i*320:(i+1)*320]
+                        
+                        # Send via UDP
+                        if self.comm.send(chunk_320):
+                            self.packets_sent += 1
 
                 except queue.Empty:
                     continue
@@ -197,6 +203,9 @@ class FullDuplexModular:
         """Receiving thread: Receive → Decode → Upsample → Speaker"""
         print("📥 Receive thread started")
         
+        # Buffer for accumulating audio to match chunk_size_48k
+        audio_buffer = np.array([], dtype=np.float32)
+        
         with sd.OutputStream(
             device=self.speaker_device,
             channels=2,
@@ -209,18 +218,25 @@ class FullDuplexModular:
             
             while self.running:
                 try:
-                    # Receive via UDP
+                    # Receive via UDP (returns 320 samples @ 16kHz)
                     audio_16k = self.comm.receive()
                     self.decoded_level = np.abs(audio_16k).max()
                     
-                    # Upsample to 48kHz
+                    # Upsample to 48kHz (320 → 960 samples)
                     audio_48k = self.comm.upsample_16k_to_48k(audio_16k)
                     
-                    # Add to speaker queue
-                    try:
-                        self.recv_queue.put_nowait(audio_48k)
-                    except queue.Full:
-                        pass  # Drop if queue full
+                    # Accumulate to buffer
+                    audio_buffer = np.concatenate([audio_buffer, audio_48k])
+                    
+                    # If we have enough samples, send to speaker
+                    while len(audio_buffer) >= self.chunk_size_48k:
+                        chunk = audio_buffer[:self.chunk_size_48k]
+                        audio_buffer = audio_buffer[self.chunk_size_48k:]
+                        
+                        try:
+                            self.recv_queue.put_nowait(chunk)
+                        except queue.Full:
+                            pass  # Drop if queue full
                     
                 except Exception as e:
                     if self.running:
@@ -237,7 +253,6 @@ class FullDuplexModular:
     
     def stats_thread(self):
         """Print statistics periodically"""
-        start_time = time.time()
         last_tx = 0
         last_rx = 0
         
@@ -245,7 +260,7 @@ class FullDuplexModular:
             time.sleep(5)
             
             # Calculate rates
-            elapsed = time.time() - start_time
+            elapsed = time.time() - self.start_time
             tx_rate = (self.packets_sent - last_tx) / 5
             rx_rate = (self.packets_received - last_rx) / 5
             
@@ -283,6 +298,7 @@ class FullDuplexModular:
     def start(self):
         """Start full-duplex communication"""
         self.running = True
+        self.start_time = time.time()  # ← 초기화
         
         # Start threads
         send_t = threading.Thread(target=self.send_thread, daemon=True)
@@ -312,13 +328,12 @@ class FullDuplexModular:
         recv_t.join(timeout=2)
         
         # Final stats
-        duration = time.time() - stats_t._target.__self__.start_time if hasattr(stats_t, '_target') else 0
+        duration = time.time() - self.start_time
         print("\n" + "="*70)
         print("📊 Session Statistics:")
-        if duration > 0:
-            print(f"   Duration: {duration:.1f}s")
-            print(f"   Packets sent: {self.packets_sent} ({self.packets_sent/duration:.1f}/s)")
-            print(f"   Packets received: {self.packets_received} ({self.packets_received/duration:.1f}/s)")
+        print(f"   Duration: {duration:.1f}s")
+        print(f"   Packets sent: {self.packets_sent} ({self.packets_sent/duration:.1f}/s)")
+        print(f"   Packets received: {self.packets_received} ({self.packets_received/duration:.1f}/s)")
         print("="*70 + "\n")
 
 
