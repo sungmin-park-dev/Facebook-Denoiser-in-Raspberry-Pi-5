@@ -1,6 +1,5 @@
 (venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ sudo bash demo/duplex/start_rp5b.sh 
-[sudo] password for test2: 
-]]==================================================
+==================================================
 🚀 RP5-B Full-Duplex Launch
 ==================================================
 
@@ -38,6 +37,7 @@ Verified:
    Device: cpu
 ⚡ JIT compiling model for faster inference...
 ✅ Light-32-Depth4 loaded (JIT optimized)
+⚡ Pre-allocated tensors for 960 samples
 📡 UDP receive buffer: 416 KB
 ✅ OpusCodec initialized:
    Sample rate: 16000 Hz
@@ -61,36 +61,56 @@ Verified:
 
 🎛️  Press Enter to toggle processor, 'q' + Enter to quit
 
-
 🔄 Modular full-duplex communication started
+
 
 Legend: TX=Sent, RX=Recv, 🎤=Mic, 🔧=Processed, 📥=Decoded, 🔊=Speaker
 🎤 Microphone started
 🔊 Speaker started
-📊 TX:   246 (49.2/s) | RX:   206 (41.2/s) | 🎤 0.006 | 🔧 0.006 | 📥 0.007 | 🔊 0.134 | ⏱️ 5s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:   498 (50.4/s) | RX:   403 (39.4/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.002 | 🔊 0.004 | ⏱️ 10s | [Bypass (No Processing)] 📤TX-AI0
-📊 TX:   747 (49.8/s) | RX:   625 (44.4/s) | 🎤 0.708 | 🔧 0.708 | 📥 1.000 | 🔊 0.892 | ⏱️ 15s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:   246 (49.2/s) | RX:   226 (45.2/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.002 | 🔊 0.033 | ⏱️ 5s | [Bypass (No Processing)] 📤TX-AI0
 1
 
 🔄 Switched to: AI Denoiser (Light-32-Depth4)
 
-🤖 AI RTF: avg=1.548, max=1.548, min=1.548 | Process time: 92.9ms / 60.0ms
-📊 TX:   993 (49.2/s) | RX:   840 (43.0/s) | 🎤 0.142 | 🔧 0.260 | 📥 0.000 | 🔊 1.134 | ⏱️ 20s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
-🤖 AI RTF: avg=0.878, max=1.227, min=0.809 | Process time: 51.3ms / 60.0ms
-🤖 AI RTF: avg=0.869, max=1.317, min=0.795 | Process time: 51.3ms / 60.0ms
-📊 TX:  1245 (50.4/s) | RX:  1026 (37.2/s) | 🎤 0.007 | 🔧 0.000 | 📥 0.003 | 🔊 0.038 | ⏱️ 25s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
-🤖 AI RTF: avg=0.868, max=1.364, min=0.806 | Process time: 52.4ms / 60.0ms
-📊 TX:  1494 (49.8/s) | RX:  1244 (43.6/s) | 🎤 0.006 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 30s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
-🤖 AI RTF: avg=0.882, max=1.299, min=0.800 | Process time: 51.0ms / 60.0ms
-🤖 AI RTF: avg=0.866, max=1.218, min=0.795 | Process time: 50.8ms / 60.0ms
-📊 TX:  1743 (49.8/s) | RX:  1470 (45.2/s) | 🎤 0.004 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 35s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
-🤖 AI RTF: avg=0.871, max=1.321, min=0.810 | Process time: 52.6ms / 60.0ms
-🤖 AI RTF: avg=0.870, max=1.298, min=0.801 | Process time: 52.5ms / 60.0ms
-📊 TX:  1995 (50.4/s) | RX:  1675 (41.0/s) | 🎤 0.005 | 🔧 0.001 | 📥 0.382 | 🔊 0.962 | ⏱️ 40s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
-🤖 AI RTF: avg=0.867, max=1.349, min=0.799 | Process time: 51.5ms / 60.0ms
-📊 TX:  2244 (49.8/s) | RX:  1905 (46.0/s) | 🎤 0.005 | 🔧 0.008 | 📥 0.000 | 🔊 0.000 | ⏱️ 45s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
-🤖 AI RTF: avg=0.877, max=1.274, min=0.807 | Process time: 49.7ms / 60.0ms
-🤖 AI RTF: avg=0.913, max=2.335, min=0.824 | Process time: 53.5ms / 60.0ms
+🤖 AI RTF: avg=1.723, max=1.723, min=1.723 | Process time: 103.4ms / 60.0ms
+📊 TX:   495 (49.8/s) | RX:   449 (44.6/s) | 🎤 0.007 | 🔧 0.000 | 📥 0.000 | 🔊 0.001 | ⏱️ 10s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
+🤖 AI RTF: avg=0.928, max=1.432, min=0.745 | Process time: 52.4ms / 60.0ms
+🤖 AI RTF: avg=0.909, max=1.196, min=0.752 | Process time: 45.3ms / 60.0ms
+📊 TX:   741 (49.2/s) | RX:   649 (40.0/s) | 🎤 0.008 | 🔧 0.001 | 📥 0.004 | 🔊 0.004 | ⏱️ 15s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI1
+🤖 AI RTF: avg=1.012, max=1.612, min=0.750 | Process time: 73.9ms / 60.0ms
+🤖 AI RTF: avg=0.919, max=1.448, min=0.758 | Process time: 47.3ms / 60.0ms
+📊 TX:   993 (50.4/s) | RX:   883 (46.8/s) | 🎤 0.010 | 🔧 0.005 | 📥 0.005 | 🔊 0.005 | ⏱️ 20s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
+🤖 AI RTF: avg=0.996, max=2.514, min=0.752 | Process time: 46.5ms / 60.0ms
+📊 TX:  1245 (50.4/s) | RX:  1133 (50.0/s) | 🎤 0.007 | 🔧 0.003 | 📥 0.002 | 🔊 0.003 | ⏱️ 25s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
+🤖 AI RTF: avg=0.936, max=1.445, min=0.752 | Process time: 64.6ms / 60.0ms
+🤖 AI RTF: avg=0.900, max=1.316, min=0.746 | Process time: 45.4ms / 60.0ms
+📊 TX:  1491 (49.2/s) | RX:  1352 (43.8/s) | 🎤 0.007 | 🔧 0.625 | 📥 0.000 | 🔊 0.004 | ⏱️ 30s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI1
+🤖 AI RTF: avg=1.014, max=1.411, min=0.756 | Process time: 83.1ms / 60.0ms
+🤖 AI RTF: avg=0.910, max=1.383, min=0.751 | Process time: 46.3ms / 60.0ms
+📊 TX:  1743 (50.4/s) | RX:  1607 (51.0/s) | 🎤 0.039 | 🔧 0.025 | 📥 0.004 | 🔊 0.004 | ⏱️ 35s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
+🤖 AI RTF: avg=0.961, max=1.740, min=0.750 | Process time: 46.6ms / 60.0ms
+📊 TX:  1995 (50.4/s) | RX:  1854 (49.4/s) | 🎤 0.006 | 🔧 0.005 | 📥 0.002 | 🔊 0.007 | ⏱️ 40s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
+🤖 AI RTF: avg=0.937, max=1.491, min=0.758 | Process time: 62.3ms / 60.0ms
+🤖 AI RTF: avg=0.895, max=1.376, min=0.749 | Process time: 44.9ms / 60.0ms
+📊 TX:  2241 (49.2/s) | RX:  2085 (46.2/s) | 🎤 0.005 | 🔧 0.000 | 📥 0.004 | 🔊 1.102 | ⏱️ 45s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI1
+🤖 AI RTF: avg=1.017, max=1.359, min=0.750 | Process time: 81.6ms / 60.0ms
+🤖 AI RTF: avg=0.914, max=1.417, min=0.761 | Process time: 45.8ms / 60.0ms
+📊 TX:  2484 (48.6/s) | RX:  2328 (48.6/s) | 🎤 0.010 | 🔧 0.000 | 📥 0.005 | 🔊 0.005 | ⏱️ 50s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI3
+🤖 AI RTF: avg=0.991, max=2.612, min=0.744 | Process time: 47.8ms / 60.0ms
+📊 TX:  2745 (52.2/s) | RX:  2576 (49.6/s) | 🎤 1.000 | 🔧 1.000 | 📥 1.000 | 🔊 1.076 | ⏱️ 55s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
+🤖 AI RTF: avg=0.928, max=1.442, min=0.753 | Process time: 54.9ms / 60.0ms
+🤖 AI RTF: avg=0.890, max=1.313, min=0.747 | Process time: 44.8ms / 60.0ms
+📊 TX:  2991 (49.2/s) | RX:  2788 (42.4/s) | 🎤 0.006 | 🔧 0.000 | 📥 0.005 | 🔊 0.004 | ⏱️ 60s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI1
+⚠️  AI output clipping prevented: 1.012 → 1.0
+🤖 AI RTF: avg=1.031, max=1.491, min=0.753 | Process time: 58.8ms / 60.0ms
+🤖 AI RTF: avg=0.907, max=1.457, min=0.755 | Process time: 45.9ms / 60.0ms
+📊 TX:  3240 (49.8/s) | RX:  3030 (48.4/s) | 🎤 0.005 | 🔧 0.001 | 📥 0.005 | 🔊 0.005 | ⏱️ 65s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI1
+🤖 AI RTF: avg=0.943, max=1.329, min=0.764 | Process time: 46.2ms / 60.0ms
+📊 TX:  3495 (51.0/s) | RX:  3278 (49.6/s) | 🎤 0.005 | 🔧 0.002 | 📥 0.004 | 🔊 0.005 | ⏱️ 70s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI0
+🤖 AI RTF: avg=0.937, max=1.466, min=0.753 | Process time: 52.6ms / 60.0ms
+🤖 AI RTF: avg=0.890, max=1.186, min=0.745 | Process time: 47.4ms / 60.0ms
+📊 TX:  3741 (49.2/s) | RX:  3501 (44.6/s) | 🎤 0.008 | 🔧 0.000 | 📥 0.004 | 🔊 0.003 | ⏱️ 75s | [AI Denoiser (Light-32-Depth4)] 📤TX-AI1
+🤖 AI RTF: avg=1.079, max=2.384, min=0.752 | Process time: 49.7ms / 60.0ms
 ^C
 🛑 Stopping...
 
@@ -101,9 +121,9 @@ Legend: TX=Sent, RX=Recv, 🎤=Mic, 🔧=Processed, 📥=Decoded, 🔊=Speaker
 
 ======================================================================
 📊 Session Statistics:
-   Duration: 48.5s
-   Packets sent: 2415 (49.8/s)
-   Packets received: 2054 (42.4/s)
+   Duration: 77.3s
+   Packets sent: 3837 (49.7/s)
+   Packets received: 3608 (46.7/s)
 ======================================================================
 
 
