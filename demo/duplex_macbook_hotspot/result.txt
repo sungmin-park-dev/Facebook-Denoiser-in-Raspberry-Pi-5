@@ -1,0 +1,55 @@
+Legend: TX=Sent, RX=Recv, 🎤=Mic, 🔧=Processed, 📥=Decoded, 🔊=Speaker
+    self.run()
+  File "/usr/lib/python3.12/threading.py", line 1010, in run
+    self.run()
+  File "/usr/lib/python3.12/threading.py", line 1010, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/test1/denoiser/demo/duplex/rp5_full_duplex_modular.py", line 232, in recv_thread
+    with sd.OutputStream(
+         ^^^^^^^^^^^^^^^^
+  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 1515, in __init__
+    self._target(*self._args, **self._kwargs)
+  File "/home/test1/denoiser/demo/duplex/rp5_full_duplex_modular.py", line 165, in send_thread
+    _StreamBase.__init__(self, kind='output', wrap_callback='array',
+  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 909, in __init__
+    with sd.InputStream(
+         ^^^^^^^^^^^^^^^
+  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 1440, in __init__
+    _check(_lib.Pa_OpenStream(self._ptr, iparameters, oparameters,
+  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 2804, in _check
+    _StreamBase.__init__(self, kind='input', wrap_callback='array',
+  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 909, in __init__
+    raise PortAudioError(errormsg, err)
+sounddevice.PortAudioError: Error opening OutputStream: Sample format not supported [PaErrorCode -9994]
+    _check(_lib.Pa_OpenStream(self._ptr, iparameters, oparameters,
+  File "/home/test1/denoiser/venv/lib/python3.12/site-packages/sounddevice.py", line 2804, in _check
+    raise PortAudioError(errormsg, err)
+sounddevice.PortAudioError: Error opening InputStream: Invalid number of channels [PaErrorCode -9998]
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 5s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 10s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 15s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 20s | [Bypass (No Processing)] 📤TX-AI0
+^[[A📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 25s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 30s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 35s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 40s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 45s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 50s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 55s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 60s | [Bypass (No Processing)] 📤TX-AI0
+📊 TX:     0 (0.0/s) | RX:     0 (0.0/s) | 🎤 0.000 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 65s | [Bypass (No Processing)] 📤TX-AI0
+^C
+🛑 Stopping...
+
+
+======================================================================
+📊 Session Statistics:
+   Duration: 65.5s
+   Packets sent: 0 (0.0/s)
+   Packets received: 0 (0.0/s)
+======================================================================
+
+
+🔧 Restoring CPU governor to ondemand...
+✅ CPU governor restored
+test1@test1-desktop:~/denoiser$ 

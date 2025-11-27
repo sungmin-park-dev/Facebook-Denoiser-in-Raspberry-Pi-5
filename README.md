@@ -1,8 +1,8 @@
 # Real-Time Audio Denoising System for Raspberry Pi 5
 
-**최종 업데이트**: 2025-01-23 
-**작성자**: David(박성민) & Claude 
-**상태**: Phase 6.5 완료, Task A 준비 중
+**최종 업데이트**: 2025-11-26
+**작성자**: David(박성민) & Claude
+**상태**: Phase 7 완료 (Full-Duplex), 프로젝트 정리 완료
 
 ---
 
@@ -451,77 +451,90 @@ denoiser/
 
 ## 📁 디렉토리 구조
 
+**전체 구조는 `docs/ARCHITECTURE.md` 참조**
+
+### 주요 폴더
+
 ```
-denoiser/
-├── models/
-│   ├── best.th                    # Light-32-Depth4 체크포인트
-│   └── (훈련 관련 파일들)
-├── test_realtime.py               # Phase 6 최종 버전 (Light-32-Depth4)
-├── test_realtime_original.py      # 원본 denoiser 테스트용
-├── filters/                       # [예정] Task A 필터 모듈
-│   ├── __init__.py
-│   ├── highpass_filter.py        # [1] HPF (80Hz)
-│   ├── impulse_suppressor.py     # [2] Fast Attack Compressor
-│   ├── soft_limiter.py           # [4] 최종 피크 제한
-│   └── config.yaml               # 필터 파라미터 설정
-├── communication/                 # [예정] Task C 통신 모듈
-│   ├── __init__.py
-│   ├── wifi_setup.sh
-│   ├── audio_sender.py
-│   ├── audio_receiver.py
-│   └── full_duplex.py            # 최종 통합 시스템
-├── utils/
-│   ├── check_audio_device.py     # 오디오 디바이스 확인 도구
-│   └── benchmark.py              # 성능 측정 도구
-├── conf/
-│   ├── config.yaml               # Hydra 메인 설정
-│   └── dset/
-│       ├── debug.yaml            # Debug 데이터셋
-│       └── valentini.yaml        # Valentini 데이터셋
-├── setup.py                       # 패키지 설치 설정
-├── requirements.txt               # 의존성 패키지
-└── README.md                      # 본 문서
+Facebook-Denoiser-in-Raspberry-Pi-5/
+├── demo/
+│   ├── duplex/                    # ★ WiFi Direct 양방향 통신
+│   │   ├── core/                  # 통신 + 처리 모듈
+│   │   ├── processors/            # AI/Bypass/Filters
+│   │   ├── configs/               # rp5a/rp5b 설정 (10.42.0.x)
+│   │   ├── start_modular_a.py     # RP5-A 실행
+│   │   ├── start_modular_b.py     # RP5-B 실행
+│   │   └── start_rp5a.sh          # CPU + 통신 통합
+│   │
+│   ├── duplex_macbook_hotspot/    # MacBook Hotspot 버전
+│   │   ├── configs/               # rp5a/rp5b 설정 (192.168.2.x)
+│   │   └── README.md              # Hotspot 설정 가이드
+│   │
+│   ├── simplex/                   # 단방향 통신
+│   └── Mac_and_bluetooth_speaker_realtime/
+│
+├── models/                        # AI 모델 체크포인트
+│   └── valentini_light32_60ep/
+│
+├── archive/                       # 아카이브
+│   └── experiments/duplex_debug/  # Duplex 디버그 기록
+│
+├── docs/                          # 프로젝트 문서
+│   ├── ARCHITECTURE.md            # 시스템 아키텍처
+│   ├── SETUP_GUIDE.md             # 설치 및 CPU 설정
+│   └── COMPLETED_PHASES.md        # Phase 완료 기록
+│
+├── src/communication/             # 공통 통신 모듈
+└── audio_pipeline/                # 오디오 처리 파이프라인
 ```
+
+### demo/duplex vs demo/duplex_macbook_hotspot
+
+| 항목 | demo/duplex | demo/duplex_macbook_hotspot |
+|------|-------------|----------------------------|
+| **네트워크** | WiFi Direct | MacBook Personal Hotspot |
+| **IP 대역** | 10.42.0.x | 192.168.2.x |
+| **RP5-A IP** | 10.42.0.1 (AP) | 192.168.2.2 (Client) |
+| **RP5-B IP** | 10.42.0.224 (Client) | 192.168.2.3 (Client) |
+| **설정 파일** | rp5a_config.yaml | rp5a_macbook.yaml |
+| **용도** | 운영 환경 | 테스트 및 개발 |
 
 ---
 
 ## ⚙️ 설치 및 실행
 
-### 환경 설정 (RP5)
+**상세 가이드는 `docs/SETUP_GUIDE.md` 참조**
 
-```bash
-# 가상환경 생성
-python3 -m venv ~/venv
-source ~/venv/bin/activate
+### Quick Start: WiFi Direct 양방향 통신
 
-# 의존성 설치
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-pip install sounddevice numpy scipy
-
-# 원본 denoiser 모델 사용 시
-pip install soundfile
-```
-
-### 실행 방법
-
-#### Phase 6: Light-32-Depth4 모델
+#### RP5-A (Access Point)
 
 ```bash
 cd /home/test1/denoiser
-/home/test1/venv/bin/python test_realtime.py
+sudo bash demo/duplex/start_rp5a.sh
 ```
 
-#### 원본 denoiser 모델 테스트
+#### RP5-B (Client)
 
 ```bash
-# dns48, dns64, master64 중 선택 (코드 내 MODEL_NAME 변경)
-/home/test1/venv/bin/python test_realtime_original.py
+cd /home/test2/Facebook-Denoiser-in-Raspberry-Pi-5
+sudo bash demo/duplex/start_rp5b.sh
 ```
 
-#### 오디오 디바이스 확인
+**중요**: CPU Performance 모드 필수 (딜레이 누적 방지)
+
+### MacBook Hotspot 환경
+
+자세한 설정은 `demo/duplex_macbook_hotspot/README.md` 참조
 
 ```bash
-/home/test1/venv/bin/python utils/check_audio_device.py
+# RP5-A
+python demo/duplex_macbook_hotspot/start_modular_a.py \
+    --config demo/duplex_macbook_hotspot/configs/rp5a_macbook.yaml
+
+# RP5-B
+python demo/duplex_macbook_hotspot/start_modular_b.py \
+    --config demo/duplex_macbook_hotspot/configs/rp5b_macbook.yaml
 ```
 
 ---
@@ -671,11 +684,10 @@ pip install -r requirements.txt
 
 ```
 2025-09 ~ 2025-10: Phase 1-6 완료 (모델 훈련 및 실시간 구동)
-2025-10-22: Phase 6.5 완료 (원본 모델 테스트) ⬅️ 현재
-2025-10-23: Task A.1 시작 (4단계 필터 체인)
-2025-10-23: Task C 진행 예정 (WiFi 통신)
-2025-10-24: 통합 및 테스트
-2025-11: Task A.2-A.3 진행 예정 (모델 업그레이드 + 데이터 증강)
+2025-10-22: Phase 6.5 완료 (원본 모델 테스트)
+2025-10-28: Phase 7 완료 (WiFi Direct Full-Duplex 통신)
+2025-11-26: 프로젝트 정리 완료 (폴더 구조, 문서 통합) ⬅️ 현재
+2025-11 ~: Task A/C 진행 예정 (필터 체인, 네트워크 최적화)
 ```
 
 ---
@@ -719,20 +731,19 @@ pip install -r requirements.txt
 | v3.0     | 2025-01-10     | Migration 완료                  |
 | v4.1     | 2025-01-11     | 간결화 (클로드 가독성 중심)              |
 | v4.2     | 2025-01-13     | Phase 3 완료, Phase 4 준비        |
-| **v5.0** | **2025-01-23** | **Phase 6.5 완료, Task A/C 추가** |
-| **v5.1** | **2025-01-24** | **Task A 계획 수정 (6단계→4단계)**    |
-**v5.0 주요 변경**:
-- Phase 6 실시간 스트리밍 구현 완료 (RTF 0.071)
-- Phase 6.5 원본 모델 테스트 완료 (dns48/dns64 비교)
-- Task A (필터 체인) 계획 추가
-- Task C (WiFi 통신) 계획 추가
-- 하드웨어 환경 상세 명시
-- Troubleshooting 섹션 추가
-**v5.1 주요 변경**:
-- Task A 단순화: 6단계 → 4단계 필터 시스템
-- 실제 문제점 명시 (음성 왜곡, 총성, 헬기)
-- Phase A.1 (즉시) / A.2-A.3 (향후) 분리
-- Light-40 재훈련 계획 추
+| v5.0     | 2025-01-23     | Phase 6.5 완료, Task A/C 추가     |
+| v5.1     | 2025-01-24     | Task A 계획 수정 (6단계→4단계)        |
+| **v6.0** | **2025-11-26** | **프로젝트 정리 및 문서 통합**          |
+
+**v6.0 주요 변경**:
+- ✅ `demo/duplex_macbook_hotspot/` 추가 (MacBook Hotspot 환경)
+- ✅ `archive/experiments/duplex_debug/` 정리
+- ✅ 중복 문서 통합:
+  - `docs/ARCHITECTURE.md` (MODULAR_ARCHITECTURE + DIRECTORY_STRUCTURE 통합)
+  - `docs/SETUP_GUIDE.md` (CPU_PERFORMANCE_GUIDE + 환경 설정 통합)
+  - `docs/COMPLETED_PHASES.md` (PHASE2_SUCCESS 이름 변경)
+- ✅ 폴더 구조 정리 및 README 업데이트
+- ✅ Git 히스토리 보존 (git mv 사용)
 
 ---
 
@@ -744,6 +755,6 @@ pip install -r requirements.txt
 
 ---
 
-**Last Updated**: 2025-01-23  
-**Status**: Phase 6.5 완료, Task A 준비 중  
-**Git Commit**: cf731606
+**Last Updated**: 2025-11-26
+**Status**: Phase 7 완료, 프로젝트 정리 완료
+**Version**: v6.0

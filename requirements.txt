@@ -1,10 +1,35 @@
+# Facebook Denoiser - Unified Requirements
+# Compatible with: Mac (M1/M2), Raspberry Pi 5, x86_64
+# Python: 3.9+
+# Last updated: 2025-11-26
+
+# Core Framework
+torch>=2.0
+torchaudio>=2.0
+
+# Hydra Configuration
 hydra_core>=1.3.2
 hydra_colorlog>=1.0.0
+
+# Audio Processing
 julius
+sounddevice>=0.4.0
+soundfile  # Optional: for Facebook's original pretrained models
+
+# Utilities
 numpy
-pystoi==0.3.3
-git+https://github.com/ludlows/python-pesq#egg=pesq
+scipy
 six
-sounddevice==0.4.0
-torchaudio>=2.0
-torch>=2.0
+PyYAML>=6.0  # Config file support for demo/duplex
+
+# Audio Quality Metrics (Training)
+pystoi==0.3.3
+
+# PESQ (Optional - Build issues on ARM64 + Python 3.12)
+# Uncomment if needed and compatible with your platform:
+# git+https://github.com/ludlows/python-pesq#egg=pesq
+
+# Notes:
+# - For ARM64 (RP5/M1): numpy may need <2.0.0 for compatibility
+# - PESQ excluded by default due to ARM64 build issues
+# - All packages tested on PyTorch 2.8.0
