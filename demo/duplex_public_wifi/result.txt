@@ -1,30 +1,197 @@
-사용자가 "gogogo"라고 했으니 워크스페이스 설정으로 진행하겠다는 의미로 보인다. 단계별로 명확하게 안내해주자.좋아요! 바로 시작합시다!
-1. User Settings (전역 설정)
-Ctrl+Shift+P → Preferences: Open User Settings (JSON)
-내용을 다음으로 변경:
-json{
-    "code-runner.runInTerminal": true,
-    "code-runner.clearPreviousOutput": true,
-    "code-runner.saveFileBeforeRun": true
-}
-Ctrl+S 저장
-2. Workspace Settings (프로젝트 설정)
-Ctrl+Shift+P → Preferences: Open Workspace Settings (JSON)
-다음 내용 입력:
-json{
-    "python.defaultInterpreterPath": "${workspaceFolder}/venv_denoiser/bin/python",
-    "code-runner.executorMap": {
-        "python": "${workspaceFolder}/venv_denoiser/bin/python -u"
-    }
-}
-Ctrl+S 저장
-3. 테스트
-bashcd ~/Facebook-Denoiser-in-Raspberry-Pi-5
-echo 'import sys; print(sys.executable)' > test_venv.py
-VSCode에서:
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.164, max=1.572, min=0.863 | Process: 83.9ms/60.0ms | Noise reduction: 11.3dB | RMS: 0.0018→0.0005
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 16761 (41.4/s) | RX: 16993 (49.8/s) | 🎤 0.005 | 🔧 0.001 | 📥 0.000 | 🔊 0.000 | ⏱️ 340s | [AI Denoiser (Light-32-Depth4)] 📤Q:3
+🤖 AI RTF: avg=1.166, max=1.657, min=0.855 | Process: 51.9ms/60.0ms | Noise reduction: 31.2dB | RMS: 0.0019→0.0001
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.158, max=1.549, min=0.846 | Process: 66.8ms/60.0ms | Noise reduction: 19.1dB | RMS: 0.0026→0.0003
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 16968 (41.4/s) | RX: 17245 (50.4/s) | 🎤 0.006 | 🔧 0.000 | 📥 0.000 | 🔊 0.001 | ⏱️ 345s | [AI Denoiser (Light-32-Depth4)] 📤Q:5
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
 
-test_venv.py 열기
-▶️ Run Code 클릭
-출력에 /venv_denoiser/bin/python 경로가 나오는지 확인
 
-결과 알려주세요!
+🔄 Switched to: Bypass (No Processing)
+
+📊 TX: 17220 (50.4/s) | RX: 17494 (49.8/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.000 | 🔊 0.000 | ⏱️ 350s | [Bypass (No Processing)] 📤Q:0
+
+
+🔄 Switched to: AI Denoiser (Light-32-Depth4)
+
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.216, max=1.533, min=0.835 | Process: 81.0ms/60.0ms | Noise reduction: 28.1dB | RMS: 0.0108→0.0004
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 17430 (42.0/s) | RX: 17740 (49.2/s) | 🎤 0.006 | 🔧 0.000 | 📥 0.000 | 🔊 0.031 | ⏱️ 355s | [AI Denoiser (Light-32-Depth4)] 📤Q:3
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.139, max=1.505, min=0.846 | Process: 83.1ms/60.0ms | Noise reduction: 2.8dB | RMS: 0.0189→0.0137
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.173, max=1.417, min=0.884 | Process: 77.8ms/60.0ms | Noise reduction: 21.6dB | RMS: 0.0019→0.0002
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 17637 (41.4/s) | RX: 17992 (50.4/s) | 🎤 0.006 | 🔧 0.006 | 📥 0.000 | 🔊 0.000 | ⏱️ 360s | [AI Denoiser (Light-32-Depth4)] 📤Q:2
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.186, max=1.668, min=0.853 | Process: 60.8ms/60.0ms | Noise reduction: 31.8dB | RMS: 0.0016→0.0000
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 17844 (41.4/s) | RX: 18241 (49.8/s) | 🎤 0.010 | 🔧 0.005 | 📥 0.000 | 🔊 0.004 | ⏱️ 365s | [AI Denoiser (Light-32-Depth4)] 📤Q:5
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.169, max=1.714, min=0.846 | Process: 71.3ms/60.0ms | Noise reduction: 0.2dB | RMS: 0.0083→0.0081
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 18048 (40.8/s) | RX: 18493 (50.4/s) | 🎤 0.007 | 🔧 0.537 | 📥 0.001 | 🔊 0.001 | ⏱️ 370s | [AI Denoiser (Light-32-Depth4)] 📤Q:5
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+
+
+🔄 Switched to: Bypass (No Processing)
+
+📊 TX: 18306 (51.6/s) | RX: 18745 (50.4/s) | 🎤 0.003 | 🔧 0.003 | 📥 0.000 | 🔊 0.108 | ⏱️ 375s | [Bypass (No Processing)] 📤Q:0
+📊 TX: 18558 (50.4/s) | RX: 18994 (49.8/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.000 | 🔊 0.001 | ⏱️ 380s | [Bypass (No Processing)] 📤Q:0
+
+
+🔄 Switched to: AI Denoiser (Light-32-Depth4)
+
+🤖 AI RTF: avg=1.227, max=1.994, min=0.868 | Process: 89.9ms/60.0ms | Noise reduction: 31.2dB | RMS: 0.0013→0.0000
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 18786 (45.6/s) | RX: 19246 (50.4/s) | 🎤 0.007 | 🔧 0.004 | 📥 0.002 | 🔊 0.003 | ⏱️ 385s | [AI Denoiser (Light-32-Depth4)] 📤Q:3
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.160, max=1.462, min=0.856 | Process: 76.7ms/60.0ms | Noise reduction: 16.5dB | RMS: 0.0012→0.0002
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 18993 (41.4/s) | RX: 19495 (49.8/s) | 🎤 0.012 | 🔧 0.008 | 📥 0.000 | 🔊 0.001 | ⏱️ 390s | [AI Denoiser (Light-32-Depth4)] 📤Q:2
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  AI output clipping prevented: 1.008 → 1.0
+🤖 AI RTF: avg=1.214, max=1.767, min=0.880 | Process: 84.4ms/60.0ms | Noise reduction: 2.4dB | RMS: 0.0022→0.0017
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+
+
+🔄 Switched to: Bypass (No Processing)
+
+📊 TX: 19209 (43.2/s) | RX: 19741 (49.2/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.000 | 🔊 0.000 | ⏱️ 395s | [Bypass (No Processing)] 📤Q:0
+📊 TX: 19458 (49.8/s) | RX: 19987 (49.2/s) | 🎤 0.067 | 🔧 0.067 | 📥 0.000 | 🔊 0.000 | ⏱️ 400s | [Bypass (No Processing)] 📤Q:0
+📊 TX: 19707 (49.8/s) | RX: 20236 (49.8/s) | 🎤 0.158 | 🔧 0.158 | 📥 0.000 | 🔊 0.000 | ⏱️ 405s | [Bypass (No Processing)] 📤Q:0
+
+
+🔄 Switched to: AI Denoiser (Light-32-Depth4)
+
+🤖 AI RTF: avg=1.242, max=2.804, min=0.857 | Process: 54.2ms/60.0ms | Noise reduction: 25.1dB | RMS: 0.0015→0.0001
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 19935 (45.6/s) | RX: 20491 (51.0/s) | 🎤 0.028 | 🔧 0.047 | 📥 0.002 | 🔊 0.000 | ⏱️ 410s | [AI Denoiser (Light-32-Depth4)] 📤Q:4
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.155, max=1.730, min=0.852 | Process: 82.8ms/60.0ms | Noise reduction: 4.4dB | RMS: 0.0239→0.0144
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 20142 (41.4/s) | RX: 20740 (49.8/s) | 🎤 0.008 | 🔧 0.166 | 📥 0.000 | 🔊 0.005 | ⏱️ 415s | [AI Denoiser (Light-32-Depth4)] 📤Q:3
+🤖 AI RTF: avg=1.211, max=1.849, min=0.914 | Process: 86.8ms/60.0ms | Noise reduction: 5.3dB | RMS: 0.0080→0.0043
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+
+
+🔄 Switched to: Bypass (No Processing)
+
+📊 TX: 20385 (48.6/s) | RX: 20992 (50.4/s) | 🎤 0.048 | 🔧 0.048 | 📥 0.000 | 🔊 0.000 | ⏱️ 420s | [Bypass (No Processing)] 📤Q:0
+
+
+🔄 Switched to: AI Denoiser (Light-32-Depth4)
+
+🤖 AI RTF: avg=1.179, max=1.696, min=0.875 | Process: 54.3ms/60.0ms | Noise reduction: -0.4dB | RMS: 0.0223→0.0232
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 20601 (43.2/s) | RX: 21243 (50.2/s) | 🎤 0.222 | 🔧 0.046 | 📥 0.000 | 🔊 0.004 | ⏱️ 425s | [AI Denoiser (Light-32-Depth4)] 📤Q:5
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.171, max=1.432, min=0.847 | Process: 63.2ms/60.0ms | Noise reduction: 29.6dB | RMS: 0.0013→0.0000
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.150, max=1.554, min=0.863 | Process: 76.1ms/60.0ms | Noise reduction: 32.3dB | RMS: 0.0010→0.0000
+📊 TX: 20808 (41.4/s) | RX: 21493 (50.0/s) | 🎤 0.005 | 🔧 0.000 | 📥 0.000 | 🔊 0.002 | ⏱️ 430s | [AI Denoiser (Light-32-Depth4)] 📤Q:4
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.189, max=1.814, min=0.852 | Process: 52.2ms/60.0ms | Noise reduction: 20.6dB | RMS: 0.0010→0.0001
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 21015 (41.4/s) | RX: 21745 (50.4/s) | 🎤 0.145 | 🔧 0.030 | 📥 0.156 | 🔊 0.000 | ⏱️ 435s | [AI Denoiser (Light-32-Depth4)] 📤Q:3
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.141, max=1.556, min=0.840 | Process: 70.5ms/60.0ms | Noise reduction: 8.7dB | RMS: 0.0664→0.0244
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 21222 (41.4/s) | RX: 21988 (48.6/s) | 🎤 0.062 | 🔧 0.001 | 📥 0.000 | 🔊 0.000 | ⏱️ 440s | [AI Denoiser (Light-32-Depth4)] 📤Q:3
+🤖 AI RTF: avg=1.159, max=1.799, min=0.848 | Process: 74.0ms/60.0ms | Noise reduction: 34.7dB | RMS: 0.0218→0.0004
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.178, max=1.637, min=0.865 | Process: 68.3ms/60.0ms | Noise reduction: 21.1dB | RMS: 0.0059→0.0005
+📊 TX: 21432 (42.0/s) | RX: 22240 (50.4/s) | 🎤 0.112 | 🔧 0.000 | 📥 0.005 | 🔊 0.015 | ⏱️ 445s | [AI Denoiser (Light-32-Depth4)] 📤Q:4
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.157, max=1.847, min=0.855 | Process: 75.9ms/60.0ms | Noise reduction: 19.1dB | RMS: 0.0147→0.0016
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 21639 (41.4/s) | RX: 22492 (50.4/s) | 🎤 0.004 | 🔧 0.004 | 📥 0.000 | 🔊 0.001 | ⏱️ 450s | [AI Denoiser (Light-32-Depth4)] 📤Q:3
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.144, max=1.552, min=0.843 | Process: 89.5ms/60.0ms | Noise reduction: 11.7dB | RMS: 0.0040→0.0010
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 21852 (42.6/s) | RX: 22744 (50.4/s) | 🎤 0.056 | 🔧 0.003 | 📥 0.001 | 🔊 0.001 | ⏱️ 455s | [AI Denoiser (Light-32-Depth4)] 📤Q:4
+🤖 AI RTF: avg=1.152, max=1.402, min=0.854 | Process: 75.3ms/60.0ms | Noise reduction: 37.9dB | RMS: 0.0012→0.0000
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.164, max=1.535, min=0.848 | Process: 54.2ms/60.0ms | Noise reduction: 23.7dB | RMS: 0.0012→0.0001
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 22059 (41.4/s) | RX: 22993 (49.8/s) | 🎤 0.006 | 🔧 0.015 | 📥 0.000 | 🔊 0.001 | ⏱️ 460s | [AI Denoiser (Light-32-Depth4)] 📤Q:3
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+🤖 AI RTF: avg=1.200, max=3.739, min=0.871 | Process: 64.3ms/60.0ms | Noise reduction: 3.4dB | RMS: 0.0070→0.0048
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+📊 TX: 22254 (39.0/s) | RX: 23236 (48.6/s) | 🎤 0.004 | 🔧 0.000 | 📥 0.000 | 🔊 0.000 | ⏱️ 465s | [AI Denoiser (Light-32-Depth4)] 📤Q:3
+⚠️  Queue overflow: dropped 4 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+⚠️  Queue overflow: dropped 3 frames (RTF spike detected)
+^C
+🛑 Stopping...
+
+
+📥 Receive thread stopped
+
+📤 Send thread stopped
+
+======================================================================
+📊 Session Statistics:
+   Duration: 466.5s
+   Packets sent: 22299 (47.8/s)
+   Packets received: 23308 (50.0/s)
+======================================================================
+
+
+👋 Stopped
+
+🔧 Restoring CPU governor to: ondemand
+✅ CPU governor set to: ondemand
