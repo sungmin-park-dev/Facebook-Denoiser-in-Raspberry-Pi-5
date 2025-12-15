@@ -1,3 +1,11 @@
+test1@test1-desktop:~/denoiser$ ip addr show wlan0
+3: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 88:a2:9e:0c:81:8e brd ff:ff:ff:ff:ff:ff
+    inet 10.249.77.56/24 brd 10.249.77.255 scope global dynamic noprefixroute wlan0
+       valid_lft 17929sec preferred_lft 17929sec
+    inet6 fe80::e59d:6dae:d7e4:c3e/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+
 (venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ ip addr show wlan0
 3: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 88:a2:9e:0c:0e:e1 brd ff:ff:ff:ff:ff:ff
@@ -5,3 +13,4 @@
        valid_lft 23720sec preferred_lft 23720sec
     inet6 fe80::518d:1f18:8a39:a5b2/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
+
