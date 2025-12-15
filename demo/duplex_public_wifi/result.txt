@@ -45,6 +45,12 @@ test2에서 실행:
 sudo ufw allow 9998/udp
 sudo ufw allow 9999/udp
 sudo ufw status
+[sudo] password for test2: 
+Skipping adding existing rule
+Skipping adding existing rule (v6)
+Skipping adding existing rule
+Skipping adding existing rule (v6)
+Status: inactive
 
 Step 2: Hostname 확인 및 설정 🏷️
 test1에서 실행:
@@ -65,7 +71,7 @@ test1@test1-desktop:~/denoiser$ sudo systemctl restart avahi-daemon
 # 확인
 hostname
 test2에서 실행:
-bash# 현재 hostname 확인
+# 현재 hostname 확인
 hostname
 
 # 만약 "test2-desktop"이 아니라면 설정
@@ -76,6 +82,11 @@ sudo systemctl restart avahi-daemon
 
 # 확인
 hostname
+
+(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ hostname
+test2-desktop
+(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ sudo systemctl restart avahi-daemon
+(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ 
 
 Step 3: mDNS 테스트 🌐
 test1에서 test2로 테스트:
@@ -88,15 +99,20 @@ PING test2-desktop.local (10.249.98.76) 56(84) bytes of data.
 64 bytes from test2-desktop.local (10.249.98.76): icmp_seq=1 ttl=64 time=5.23 ms
 64 bytes from test2-desktop.local (10.249.98.76): icmp_seq=2 ttl=64 time=4.87 ms
 64 bytes from test2-desktop.local (10.249.98.76): icmp_seq=3 ttl=64 time=5.01 ms
-test2에서 test1로 테스트:
-bashping -c 3 test1-desktop.local
-```
 
-**예상 출력:**
-```
+test2에서 test1로 테스트:
+ping -c 3 test1-desktop.local
+
+(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ ping -c 3 test1-desktop.local
 PING test1-desktop.local (10.249.77.56) 56(84) bytes of data.
-64 bytes from test1-desktop.local (10.249.77.56): icmp_seq=1 ttl=64 time=5.45 ms
-...
+64 bytes from 10.249.77.56: icmp_seq=1 ttl=63 time=6.81 ms
+64 bytes from 10.249.77.56: icmp_seq=2 ttl=63 time=10.3 ms
+64 bytes from 10.249.77.56: icmp_seq=3 ttl=63 time=15.0 ms
+
+--- test1-desktop.local ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2001ms
+rtt min/avg/max/mdev = 6.806/10.676/14.960/3.341 ms
+
 
 Step 4: Config 파일 수정 📝
 test1에서 실행:
