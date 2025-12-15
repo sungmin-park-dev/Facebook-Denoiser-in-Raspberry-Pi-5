@@ -62,7 +62,6 @@ test1@test1-desktop:~/denoiser$ hostname
 test1-desktop
 test1@test1-desktop:~/denoiser$ sudo systemctl restart avahi-daemon
 
-
 # 확인
 hostname
 test2에서 실행:
