@@ -1,10 +1,32 @@
+좋아요! 이제 설정 파일을 만듭시다.
+설정 파일 생성
+VSCode에서:
+
+Ctrl+Shift+P (Command Palette 열기)
+다음 입력:
+
+   Preferences: Open User Settings (JSON)
+
+파일이 열리면 아래 내용 전체 붙여넣기:
+
+json
+
 {
     "python.defaultInterpreterPath": "/bin/python3",
     "code-runner.runInTerminal": true,
     "code-runner.clearPreviousOutput": true,
-    "code-runner.saveFileBeforeRun": true,
-    "code-runner.preserveFocus": false,
-    "code-runner.executorMap": {
-        "python": "python3 -u"
-    }
+    "code-runner.saveFileBeforeRun": true
 }
+
+Ctrl+S 저장
+
+테스트
+간단한 Python 파일로 테스트:
+bashcd ~/Facebook-Denoiser-in-Raspberry-Pi-5
+echo 'print("Hello from Code Runner!")' > test.py
+VSCode에서:
+
+test.py 열기
+우측 상단 ▶️ Run Code 버튼 클릭
+
+이제 제대로 작동하나요?
