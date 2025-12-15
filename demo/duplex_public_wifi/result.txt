@@ -1,11 +1,10 @@
-test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ ~/.config/Code/User/setting.json
-bash: /home/test2/.config/Code/User/setting.json: No such file or directory
-test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ code --version
-1.105.1
-7d842fb85a0275a4a8e4d7e040d2625abbf7f084
-arm64
-
-
 {
-    "python.defaultInterpreterPath": "/bin/python3"
+    "python.defaultInterpreterPath": "/bin/python3",
+    "code-runner.runInTerminal": true,
+    "code-runner.clearPreviousOutput": true,
+    "code-runner.saveFileBeforeRun": true,
+    "code-runner.preserveFocus": false,
+    "code-runner.executorMap": {
+        "python": "python3 -u"
+    }
 }
