@@ -34,7 +34,12 @@ test1에서 실행:
 sudo ufw allow 9998/udp
 sudo ufw allow 9999/udp
 sudo ufw status
-
+[sudo] password for test1: 
+Rules updated
+Rules updated (v6)
+Rules updated
+Rules updated (v6)
+Status: inactive
 
 test2에서 실행:
 sudo ufw allow 9998/udp
@@ -51,6 +56,12 @@ sudo hostnamectl set-hostname test1-desktop
 
 # Avahi 재시작 (mDNS 활성화)
 sudo systemctl restart avahi-daemon
+
+
+test1@test1-desktop:~/denoiser$ hostname
+test1-desktop
+test1@test1-desktop:~/denoiser$ sudo systemctl restart avahi-daemon
+
 
 # 확인
 hostname
