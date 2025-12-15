@@ -14,3 +14,17 @@ test1@test1-desktop:~/denoiser$ ip addr show wlan0
     inet6 fe80::518d:1f18:8a39:a5b2/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 
+
+## Test results
+test1@test1-desktop:~/denoiser$ ping -c 5 10.249.98.76
+PING 10.249.98.76 (10.249.98.76) 56(84) bytes of data.
+64 bytes from 10.249.98.76: icmp_seq=1 ttl=63 time=118 ms
+64 bytes from 10.249.98.76: icmp_seq=2 ttl=63 time=10.5 ms
+64 bytes from 10.249.98.76: icmp_seq=3 ttl=63 time=9.74 ms
+64 bytes from 10.249.98.76: icmp_seq=4 ttl=63 time=9.54 ms
+64 bytes from 10.249.98.76: icmp_seq=5 ttl=63 time=4.50 ms
+
+--- 10.249.98.76 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4006ms
+rtt min/avg/max/mdev = 4.502/30.463/118.022/43.830 ms
+
