@@ -1,257 +1,52 @@
-test1@test1-desktop:~/denoiser$ ip addr show wlan0
-3: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 88:a2:9e:0c:81:8e brd ff:ff:ff:ff:ff:ff
-    inet 10.249.77.56/24 brd 10.249.77.255 scope global dynamic noprefixroute wlan0
-       valid_lft 17929sec preferred_lft 17929sec
-    inet6 fe80::e59d:6dae:d7e4:c3e/64 scope link noprefixroute 
-       valid_lft forever preferred_lft forever
+블루투스 스피커가 연결되었는데 오디오 장치 목록에 안 뜨는 문제네요. 확인해보겠습니다.
+🔍 Step 1: 현재 오디오 장치 확인
+bash# test1에서 실행 (가상환경 활성화 상태)
+python -c "import sounddevice as sd; print(sd.query_devices())"
+이 명령어로 현재 sounddevice가 인식하는 모든 장치를 보여줍니다.
 
-(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ ip addr show wlan0
-3: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 88:a2:9e:0c:0e:e1 brd ff:ff:ff:ff:ff:ff
-    inet 10.249.98.76/24 brd 10.249.98.255 scope global dynamic noprefixroute wlan0
-       valid_lft 23720sec preferred_lft 23720sec
-    inet6 fe80::518d:1f18:8a39:a5b2/64 scope link noprefixroute 
-       valid_lft forever preferred_lft forever
+🔍 Step 2: 시스템 오디오 장치 확인
+bash# PulseAudio 싱크(스피커) 확인
+pactl list sinks short
 
+# 블루투스 연결 상태 확인
+bluetoothctl devices
+bluetoothctl info [MAC주소]
 
-## Test results
-test1@test1-desktop:~/denoiser$ ping -c 5 10.249.98.76
-PING 10.249.98.76 (10.249.98.76) 56(84) bytes of data.
-64 bytes from 10.249.98.76: icmp_seq=1 ttl=63 time=118 ms
-64 bytes from 10.249.98.76: icmp_seq=2 ttl=63 time=10.5 ms
-64 bytes from 10.249.98.76: icmp_seq=3 ttl=63 time=9.74 ms
-64 bytes from 10.249.98.76: icmp_seq=4 ttl=63 time=9.54 ms
-64 bytes from 10.249.98.76: icmp_seq=5 ttl=63 time=4.50 ms
+🔧 Step 3: 블루투스 스피커를 기본 장치로 설정
+bash# 1. 현재 싱크 확인
+pactl list sinks short
 
---- 10.249.98.76 ping statistics ---
-5 packets transmitted, 5 received, 0% packet loss, time 4006ms
-rtt min/avg/max/mdev = 4.502/30.463/118.022/43.830 ms
+# 출력 예:
+# 0  alsa_output.usb-...  module-alsa-card.c  s16le 2ch 48000Hz  SUSPENDED
+# 1  bluez_sink.XX_XX_XX  module-bluez5-device.c  s16le 2ch 44100Hz  RUNNING
 
+# 2. 블루투스 싱크를 기본으로 설정 (번호는 위 출력에서 확인)
+pactl set-default-sink bluez_sink.XX_XX_XX
 
-Step 1: 방화벽 설정 (양쪽 RP5) 🔥
-test1에서 실행:
-sudo ufw allow 9998/udp
-sudo ufw allow 9999/udp
-sudo ufw status
-[sudo] password for test1: 
-Rules updated
-Rules updated (v6)
-Rules updated
-Rules updated (v6)
-Status: inactive
+# 3. 볼륨 확인 및 설정
+pactl set-sink-volume bluez_sink.XX_XX_XX 80%
 
-test2에서 실행:
-sudo ufw allow 9998/udp
-sudo ufw allow 9999/udp
-sudo ufw status
-[sudo] password for test2: 
-Skipping adding existing rule
-Skipping adding existing rule (v6)
-Skipping adding existing rule
-Skipping adding existing rule (v6)
-Status: inactive
+🎯 해결 방법: Config에서 장치 번호 직접 지정
+만약 블루투스 장치가 목록에 뜨는데 선택이 안 된다면:
+bash# 1. 장치 번호 확인
+python -c "import sounddevice as sd; print(sd.query_devices())"
 
-Step 2: Hostname 확인 및 설정 🏷️
-test1에서 실행:
-bash# 현재 hostname 확인
-hostname
+# 출력 예:
+# 0 H08A: USB Audio (hw:0,0), ALSA (2 in, 2 out)
+# 1 default, ALSA (128 in, 128 out)
+# 2 JBL Flip 5: - (hw:2,0), ALSA (0 in, 2 out)  ← 블루투스 스피커
 
-# 만약 "test1-desktop"이 아니라면 설정
-sudo hostnamectl set-hostname test1-desktop
-
-# Avahi 재시작 (mDNS 활성화)
-sudo systemctl restart avahi-daemon
-
-
-test1@test1-desktop:~/denoiser$ hostname
-test1-desktop
-test1@test1-desktop:~/denoiser$ sudo systemctl restart avahi-daemon
-
-# 확인
-hostname
-test2에서 실행:
-# 현재 hostname 확인
-hostname
-
-# 만약 "test2-desktop"이 아니라면 설정
-sudo hostnamectl set-hostname test2-desktop
-
-# Avahi 재시작
-sudo systemctl restart avahi-daemon
-
-# 확인
-hostname
-
-(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ hostname
-test2-desktop
-(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ sudo systemctl restart avahi-daemon
-(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ 
-
-Step 3: mDNS 테스트 🌐
-test1에서 test2로 테스트:
-
-ping -c 3 test2-desktop.local
-```
-
-test1@test1-desktop:~/denoiser$ ping -c 3 test2-desktop.local
-PING test2-desktop.local (10.249.98.76) 56(84) bytes of data.
-64 bytes from 10.249.98.76: icmp_seq=1 ttl=63 time=10.0 ms
-64 bytes from 10.249.98.76: icmp_seq=2 ttl=63 time=10.2 ms
-64 bytes from 10.249.98.76: icmp_seq=3 ttl=63 time=9.41 ms
-
---- test2-desktop.local ping statistics ---
-3 packets transmitted, 3 received, 0% packet loss, time 2003ms
-rtt min/avg/max/mdev = 9.412/9.877/10.219/0.340 m
-
-test2에서 test1로 테스트:
-ping -c 3 test1-desktop.local
-
-(venv_denoiser) test2@test2-desktop:~/Facebook-Denoiser-in-Raspberry-Pi-5$ ping -c 3 test1-desktop.local
-PING test1-desktop.local (10.249.77.56) 56(84) bytes of data.
-64 bytes from 10.249.77.56: icmp_seq=1 ttl=63 time=6.81 ms
-64 bytes from 10.249.77.56: icmp_seq=2 ttl=63 time=10.3 ms
-64 bytes from 10.249.77.56: icmp_seq=3 ttl=63 time=15.0 ms
-
---- test1-desktop.local ping statistics ---
-3 packets transmitted, 3 received, 0% packet loss, time 2001ms
-rtt min/avg/max/mdev = 6.806/10.676/14.960/3.341 ms
-
-
-Step 4: Config 파일 수정 📝
-test1에서 실행:
-bashcd ~/denoiser/demo/duplex_public_wifi
-
-# Config 파일 백업 (안전을 위해)
-cp configs/rp5a_public.yaml configs/rp5a_public.yaml.backup
-
-# Config 파일 수정
-nano configs/rp5a_public.yaml
-수정 내용:
-yamlrole: A
-peer_ip: "test2-desktop.local"  # ← 이 줄을 mDNS로 변경
-mic_device: 1
-speaker_device: 1
-send_port: 9999
-recv_port: 9998
-model: Light-32-Depth4
-저장: Ctrl+O → Enter → Ctrl+X
-확인:
-bashcat configs/rp5a_public.yaml | grep peer_ip
-```
-
-**예상 출력:**
-```
-peer_ip: "test2-desktop.local"
-
-test2에서 실행:
-bashcd ~/Facebook-Denoiser-in-Raspberry-Pi-5/demo/duplex_public_wifi
-
-# Config 백업
-cp configs/rp5b_public.yaml configs/rp5b_public.yaml.backup
-
-# Config 수정
-nano configs/rp5b_public.yaml
-수정 내용:
-yamlrole: B
-peer_ip: "test1-desktop.local"  # ← 이 줄을 mDNS로 변경
-mic_device: 1
-speaker_device: 1
-send_port: 9998
-recv_port: 9999
-model: Light-32-Depth4
-저장: Ctrl+O → Enter → Ctrl+X
-확인:
-bashcat configs/rp5b_public.yaml | grep peer_ip
-```
-
-**예상 출력:**
-```
-peer_ip: "test1-desktop.local"
-
-Step 5: 테스트 실행 🚀
-test1에서:
-bashcd ~/denoiser/demo/duplex_public_wifi
-python start_modular_a.py
-test2에서:
-bashcd ~/Facebook-Denoiser-in-Raspberry-Pi-5/demo/duplex_public_wifi
-python start_modular_b.py
-
-✅ 설정 완료 체크리스트
-양쪽 RP5에서 확인:
-bash# 1. 방화벽
-sudo ufw status | grep 999
-
-# 2. Hostname
-hostname
-
-# 3. mDNS 작동
-ping -c 1 test2-desktop.local  # test1에서
-ping -c 1 test1-desktop.local  # test2에서
-
-# 4. Config
-cat configs/rp5a_public.yaml | grep peer_ip  # test1에서
-cat configs/rp5b_public.yaml | grep peer_ip  # test2에서
-모두 정상이면:
-
-✅ 방화벽: 9998/udp, 9999/udp ALLOW
-✅ Hostname: test1-desktop, test2-desktop
-✅ mDNS: ping 성공
-✅ Config: peer_ip: "xxx-desktop.local"
-
-
-🎉 설정 완료!
-이제부터는 재부팅해도 다음 명령만 실행하면 됩니다:
-bash# test1
+# 2. Config 파일 수정
 cd ~/denoiser/demo/duplex_public_wifi
-python start_modular_a.py
+nano configs/rp5a_public.yaml
+rp5a_public.yaml 수정:
+yamlmic_device: 0        # H08A 마이크
+speaker_device: 2    # 블루투스 스피커 (위 번호에서 확인)
 
-# test2
-cd ~/Facebook-Denoiser-in-Raspberry-Pi-5/demo/duplex_public_wifi
-python start_modular_b.py
-단계별로 진행해보시고, 어느 단계에서 문제가 생기면 알려주세요!Claude는 AI이며 실수할 수 있습니다. 응답을 다시 한번 확인해 주세요.
+💡 빠른 테스트
+bash# 블루투스 스피커로 테스트 사운드 재생
+speaker-test -D bluez_sink.XX_XX_XX -c 2 -t wav
+# Ctrl+C로 중지
 
-
-(venv) test1@test1-desktop:~/denoiser$ ls -la
-total 188
-drwxrwxr-x 17 test1 test1  4096 Dec 15 12:24  .
-drwxr-x--- 23 test1 test1  4096 Nov 20 20:21  ..
-drwxrwxr-x  8 test1 test1  4096 Dec 15 12:49  .git
-drwxrwxr-x  3 test1 test1  4096 Sep  9 10:13  .github
--rw-rw-r--  1 test1 test1  2116 Nov  3 18:14  .gitignore
--rw-rw-r--  1 test1 test1    85 Oct 28 20:43 '=6.0'
--rw-rw-r--  1 test1 test1  6834 Dec 15 12:24  CLAUDE.md
--rw-rw-r--  1 test1 test1   829 Sep  9 10:13  CONTRIBUTING.md
--rw-rw-r--  1 test1 test1 19333 Sep  9 10:13  LICENSE
--rw-rw-r--  1 test1 test1   130 Sep  9 10:13  MANIFEST.in
--rw-rw-r--  1 test1 test1 20679 Dec 15 12:24  README.md
-drwxrwxr-x  7 test1 test1  4096 Dec 15 12:24  archive
-drwxrwxr-x  8 test1 test1  4096 Oct 28 19:24  audio_pipeline
-drwxrwxr-x  3 test1 test1  4096 Oct 17 14:01  conf
-drwxrwxr-x  7 test1 test1  4096 Dec 15 12:24  demo
--rw-rw-r--  1 test1 test1 10059 Oct 24 14:01  demo_ai_toggle.py
-drwxrwxr-x  3 test1 test1  4096 Oct 23 10:47  denoiser
-drwxrwxr-x  2 test1 test1  4096 Oct 17 14:12  denoiser.egg-info
-drwxrwxr-x  2 test1 test1  4096 Dec 15 12:24  docs
--rw-rw-r--  1 test1 test1   305 Sep  9 10:13  hubconf.py
-drwxrwxr-x  2 test1 test1  4096 Sep  9 10:13  img
--rwxrwxr-x  1 test1 test1   459 Sep  9 10:13  launch_dns.sh
--rwxrwxr-x  1 test1 test1   511 Sep  9 10:13  launch_valentini.sh
--rwxrwxr-x  1 test1 test1   488 Sep  9 10:13  launch_valentini_nc.sh
--rwxrwxr-x  1 test1 test1   438 Sep  9 10:13  make_debug.sh
-drwxrwxr-x  3 test1 test1  4096 Oct 28 19:59  models
-drwxrwxr-x  3 test1 test1  4096 Oct 17 14:22  outputs
--rw-rw-r--  1 test1 test1   827 Dec 15 12:24  requirements.txt
-drwxrwxr-x  2 test1 test1  4096 Sep  9 11:19  rpi5_optimization
--rw-rw-r--  1 test1 test1    88 Sep  9 10:13  setup.cfg
--rw-rw-r--  1 test1 test1  2228 Oct 17 14:01  setup.py
-drwxrwxr-x  3 test1 test1  4096 Oct 24 16:03  src
--rwxrwxr-x  1 test1 test1  3829 Oct 17 14:01  train.py
--rwxrwxr-x  1 test1 test1  3929 Oct 17 14:01  train.py.backup
-drwxrwxr-x  6 test1 test1  4096 Oct 17 14:10  venv
-
-(venv) test1@test1-desktop:~/denoiser$ /usr/bin/python3 /home/test1/denoiser/demo/duplex_public_wifi/start_modular_a.py
-Traceback (most recent call last):
-  File "/home/test1/denoiser/demo/duplex_public_wifi/start_modular_a.py", line 25, in <module>
-    import sounddevice as sd
-ModuleNotFoundError: No module named 'sounddevice'
+먼저 python -c "import sounddevice as sd; print(sd.query_devices())" 실행 결과를 보여주세요!
+그러면 정확한 장치 번호를 알려드리겠습니다.
