@@ -249,3 +249,9 @@ drwxrwxr-x  3 test1 test1  4096 Oct 24 16:03  src
 -rwxrwxr-x  1 test1 test1  3829 Oct 17 14:01  train.py
 -rwxrwxr-x  1 test1 test1  3929 Oct 17 14:01  train.py.backup
 drwxrwxr-x  6 test1 test1  4096 Oct 17 14:10  venv
+
+(venv) test1@test1-desktop:~/denoiser$ /usr/bin/python3 /home/test1/denoiser/demo/duplex_public_wifi/start_modular_a.py
+Traceback (most recent call last):
+  File "/home/test1/denoiser/demo/duplex_public_wifi/start_modular_a.py", line 25, in <module>
+    import sounddevice as sd
+ModuleNotFoundError: No module named 'sounddevice'
