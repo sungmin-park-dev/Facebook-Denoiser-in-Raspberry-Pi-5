@@ -210,3 +210,42 @@ python start_modular_a.py
 cd ~/Facebook-Denoiser-in-Raspberry-Pi-5/demo/duplex_public_wifi
 python start_modular_b.py
 단계별로 진행해보시고, 어느 단계에서 문제가 생기면 알려주세요!Claude는 AI이며 실수할 수 있습니다. 응답을 다시 한번 확인해 주세요.
+
+
+(venv) test1@test1-desktop:~/denoiser$ ls -la
+total 188
+drwxrwxr-x 17 test1 test1  4096 Dec 15 12:24  .
+drwxr-x--- 23 test1 test1  4096 Nov 20 20:21  ..
+drwxrwxr-x  8 test1 test1  4096 Dec 15 12:49  .git
+drwxrwxr-x  3 test1 test1  4096 Sep  9 10:13  .github
+-rw-rw-r--  1 test1 test1  2116 Nov  3 18:14  .gitignore
+-rw-rw-r--  1 test1 test1    85 Oct 28 20:43 '=6.0'
+-rw-rw-r--  1 test1 test1  6834 Dec 15 12:24  CLAUDE.md
+-rw-rw-r--  1 test1 test1   829 Sep  9 10:13  CONTRIBUTING.md
+-rw-rw-r--  1 test1 test1 19333 Sep  9 10:13  LICENSE
+-rw-rw-r--  1 test1 test1   130 Sep  9 10:13  MANIFEST.in
+-rw-rw-r--  1 test1 test1 20679 Dec 15 12:24  README.md
+drwxrwxr-x  7 test1 test1  4096 Dec 15 12:24  archive
+drwxrwxr-x  8 test1 test1  4096 Oct 28 19:24  audio_pipeline
+drwxrwxr-x  3 test1 test1  4096 Oct 17 14:01  conf
+drwxrwxr-x  7 test1 test1  4096 Dec 15 12:24  demo
+-rw-rw-r--  1 test1 test1 10059 Oct 24 14:01  demo_ai_toggle.py
+drwxrwxr-x  3 test1 test1  4096 Oct 23 10:47  denoiser
+drwxrwxr-x  2 test1 test1  4096 Oct 17 14:12  denoiser.egg-info
+drwxrwxr-x  2 test1 test1  4096 Dec 15 12:24  docs
+-rw-rw-r--  1 test1 test1   305 Sep  9 10:13  hubconf.py
+drwxrwxr-x  2 test1 test1  4096 Sep  9 10:13  img
+-rwxrwxr-x  1 test1 test1   459 Sep  9 10:13  launch_dns.sh
+-rwxrwxr-x  1 test1 test1   511 Sep  9 10:13  launch_valentini.sh
+-rwxrwxr-x  1 test1 test1   488 Sep  9 10:13  launch_valentini_nc.sh
+-rwxrwxr-x  1 test1 test1   438 Sep  9 10:13  make_debug.sh
+drwxrwxr-x  3 test1 test1  4096 Oct 28 19:59  models
+drwxrwxr-x  3 test1 test1  4096 Oct 17 14:22  outputs
+-rw-rw-r--  1 test1 test1   827 Dec 15 12:24  requirements.txt
+drwxrwxr-x  2 test1 test1  4096 Sep  9 11:19  rpi5_optimization
+-rw-rw-r--  1 test1 test1    88 Sep  9 10:13  setup.cfg
+-rw-rw-r--  1 test1 test1  2228 Oct 17 14:01  setup.py
+drwxrwxr-x  3 test1 test1  4096 Oct 24 16:03  src
+-rwxrwxr-x  1 test1 test1  3829 Oct 17 14:01  train.py
+-rwxrwxr-x  1 test1 test1  3929 Oct 17 14:01  train.py.backup
+drwxrwxr-x  6 test1 test1  4096 Oct 17 14:10  venv
