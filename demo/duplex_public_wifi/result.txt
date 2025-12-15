@@ -1,32 +1,30 @@
-좋아요! 이제 설정 파일을 만듭시다.
-설정 파일 생성
-VSCode에서:
-
-Ctrl+Shift+P (Command Palette 열기)
-다음 입력:
-
-   Preferences: Open User Settings (JSON)
-
-파일이 열리면 아래 내용 전체 붙여넣기:
-
-json
-
-{
-    "python.defaultInterpreterPath": "/bin/python3",
+사용자가 "gogogo"라고 했으니 워크스페이스 설정으로 진행하겠다는 의미로 보인다. 단계별로 명확하게 안내해주자.좋아요! 바로 시작합시다!
+1. User Settings (전역 설정)
+Ctrl+Shift+P → Preferences: Open User Settings (JSON)
+내용을 다음으로 변경:
+json{
     "code-runner.runInTerminal": true,
     "code-runner.clearPreviousOutput": true,
     "code-runner.saveFileBeforeRun": true
 }
-
 Ctrl+S 저장
-
-테스트
-간단한 Python 파일로 테스트:
+2. Workspace Settings (프로젝트 설정)
+Ctrl+Shift+P → Preferences: Open Workspace Settings (JSON)
+다음 내용 입력:
+json{
+    "python.defaultInterpreterPath": "${workspaceFolder}/venv_denoiser/bin/python",
+    "code-runner.executorMap": {
+        "python": "${workspaceFolder}/venv_denoiser/bin/python -u"
+    }
+}
+Ctrl+S 저장
+3. 테스트
 bashcd ~/Facebook-Denoiser-in-Raspberry-Pi-5
-echo 'print("Hello from Code Runner!")' > test.py
+echo 'import sys; print(sys.executable)' > test_venv.py
 VSCode에서:
 
-test.py 열기
-우측 상단 ▶️ Run Code 버튼 클릭
+test_venv.py 열기
+▶️ Run Code 클릭
+출력에 /venv_denoiser/bin/python 경로가 나오는지 확인
 
-이제 제대로 작동하나요?
+결과 알려주세요!
