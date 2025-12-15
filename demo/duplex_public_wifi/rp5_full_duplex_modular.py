@@ -7,7 +7,7 @@ Features:
 - Separate communication and processing logic
 
 Usage:
-    python demo/duplex/rp5_full_duplex_modular.py --config configs/rp5a_modular.yaml
+    python demo/duplex_public_wifi/rp5_full_duplex_modular.py --config configs/rp5a_public.yaml
 """
 
 import argparse
@@ -25,8 +25,8 @@ import select
 project_root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(project_root))
 
-from demo.duplex.core import AudioComm
-from demo.duplex.processors import (
+from demo.duplex_public_wifi.core import AudioComm
+from demo.duplex_public_wifi.processors import (
     BypassProcessor,
     AIDenoiserProcessor,
     ClassicalFiltersProcessor

@@ -1,0 +1,17 @@
+# RP5-A Configuration for Public WiFi Full-Duplex Communication
+# Network: Public WiFi (e.g., Welcome_KAIST)
+# Works across different subnets (e.g., 10.249.55.x <-> 10.249.98.x)
+
+role: A
+
+# Peer IP Configuration (Priority order):
+# 1. mDNS hostname (recommended): "hostname.local" - auto-resolves IP
+# 2. Static IP: "10.249.98.123" - if you know the peer's IP
+# 3. null - will be detected at runtime or prompted interactively
+peer_ip: "test2-desktop.local"  # Change to your RP5-B hostname
+
+mic_device: 1
+speaker_device: 1
+send_port: 9999  # Sends to B's recv_port
+recv_port: 9998  # Receives from B's send_port
+model: Light-32-Depth4
