@@ -50,3 +50,90 @@ speaker-test -D bluez_sink.XX_XX_XX -c 2 -t wav
 
 먼저 python -c "import sounddevice as sd; print(sd.query_devices())" 실행 결과를 보여주세요!
 그러면 정확한 장치 번호를 알려드리겠습니다.
+
+
+
+(venv) test1@test1-desktop:~/denoiser$ python -c "import sounddevice as sd; print(sd.query_devices())"
+  0 vc4-hdmi-0: MAI PCM i2s-hifi-0 (hw:0,0), ALSA (0 in, 2 out)
+  1 USB Audio Device: - (hw:1,0), ALSA (1 in, 0 out)
+  2 sysdefault, ALSA (0 in, 128 out)
+  3 hdmi, ALSA (0 in, 2 out)
+  4 pulse, ALSA (32 in, 32 out)
+* 5 default, ALSA (32 in, 32 out)
+(venv) test1@test1-desktop:~/denoiser$ pactl list sinks short
+131     bluez_output.41_42_BD_0A_35_E3.1        PipeWire        s16le 2ch 48000Hz       SUSPENDED
+(venv) test1@test1-desktop:~/denoiser$ pactl list sinks short
+131     bluez_output.41_42_BD_0A_35_E3.1        PipeWire        s16le 2ch 48000Hz       SUSPENDED
+(venv) test1@test1-desktop:~/denoiser$ 
+(venv) test1@test1-desktop:~/denoiser$ pactl list sinks short
+131     bluez_output.41_42_BD_0A_35_E3.1        PipeWire        s16le 2ch 48000Hz       SUSPENDED
+(venv) test1@test1-desktop:~/denoiser$ pactl list sinks short
+131     bluez_output.41_42_BD_0A_35_E3.1        PipeWire        s16le 2ch 48000Hz       SUSPENDED
+(venv) test1@test1-desktop:~/denoiser$ bluetoothctl devices
+bluetoothctl info [MAC주소]
+Device 5B:79:7C:35:5D:9C 5B-79-7C-35-5D-9C
+Device 40:4D:B5:7F:C6:DA 40-4D-B5-7F-C6-DA
+Device 28:DE:65:62:86:11 28-DE-65-62-86-11
+Device 5F:9D:46:C5:FE:32 5F-9D-46-C5-FE-32
+Device 71:96:6A:CC:C1:AE 71-96-6A-CC-C1-AE
+Device 6A:5C:B7:A4:D8:9C 6A-5C-B7-A4-D8-9C
+Device 67:A4:9B:B6:BE:CB 67-A4-9B-B6-BE-CB
+Device 6B:1E:EE:98:27:02 6B-1E-EE-98-27-02
+Device 78:8A:EB:9D:E6:CE 78-8A-EB-9D-E6-CE
+Device 6E:BE:10:88:2A:36 6E-BE-10-88-2A-36
+Device 75:58:32:DD:C9:8F 75-58-32-DD-C9-8F
+Device 7E:A2:B9:C1:47:62 7E-A2-B9-C1-47-62
+Device 63:A1:E9:71:04:58 63-A1-E9-71-04-58
+Device 59:15:16:27:E2:A0 59-15-16-27-E2-A0
+Device 55:22:1A:A3:C6:99 55-22-1A-A3-C6-99
+Device 04:33:C2:5E:C0:0D DESKTOP-6MML0LT
+Device 4D:86:FF:7B:C2:04 4D-86-FF-7B-C2-04
+Device 66:A7:FE:32:4C:EC 66-A7-FE-32-4C-EC
+Device 42:45:EF:C5:41:1E 42-45-EF-C5-41-1E
+Device 63:C8:68:47:EC:A3 63-C8-68-47-EC-A3
+Device 74:71:CB:E8:07:F1 74-71-CB-E8-07-F1
+Device 45:D3:0F:81:2C:6A 45-D3-0F-81-2C-6A
+Device 5A:EA:47:50:FE:62 5A-EA-47-50-FE-62
+Device 4C:D1:27:26:C5:B4 4C-D1-27-26-C5-B4
+Device 29:E7:11:32:04:DD 29-E7-11-32-04-DD
+Device 4C:0C:5D:E5:55:A5 4C-0C-5D-E5-55-A5
+Device 47:1E:03:AC:7A:BA 47-1E-03-AC-7A-BA
+Device 72:7A:05:D6:E1:F8 72-7A-05-D6-E1-F8
+Device 7E:FD:27:C0:E6:9B 7E-FD-27-C0-E6-9B
+Device 5C:22:2A:CE:72:76 5C-22-2A-CE-72-76
+Device 43:C4:74:87:96:25 43-C4-74-87-96-25
+Device 55:91:73:53:C0:86 55-91-73-53-C0-86
+Device 4C:D9:95:CE:54:31 4C-D9-95-CE-54-31
+Device 64:5D:C4:5B:9B:8D 64-5D-C4-5B-9B-8D
+Device 5D:1F:E8:74:E9:88 5D-1F-E8-74-E9-88
+Device 5C:70:E6:22:31:2E 5C-70-E6-22-31-2E
+Device 6F:4D:B3:EE:39:10 6F-4D-B3-EE-39-10
+Device 7D:69:F0:7C:B4:4A 7D-69-F0-7C-B4-4A
+Device 75:4E:01:E3:48:3D 75-4E-01-E3-48-3D
+Device 68:E1:6F:02:23:97 IOT_PC_01
+Device 48:2F:74:F8:AE:31 48-2F-74-F8-AE-31
+Device 47:9D:F6:62:02:F3 Mini sperker
+Device 41:42:BD:0A:35:E3 “#35266 Speaker’
+Device 30:82:16:1C:7E:C5 AirPods
+Device D4:57:63:DC:E0:C7 박성민의 MacBook Air
+Device DA:69:5C:FB:27:D9 Pebble M350s
+Device 12:34:46:70:42:D2 Air75 BT3.0
+Device [MAC주소] not available
+DeviceSet [MAC주소] not available
+(venv) test1@test1-desktop:~/denoiser$ ip addr show
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: eth0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc fq_codel state DOWN group default qlen 1000
+    link/ether 88:a2:9e:0c:81:8d brd ff:ff:ff:ff:ff:ff
+3: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 88:a2:9e:0c:81:8e brd ff:ff:ff:ff:ff:ff
+    inet 10.249.77.56/24 brd 10.249.77.255 scope global dynamic noprefixroute wlan0
+       valid_lft 15036sec preferred_lft 15036sec
+    inet6 fe80::e59d:6dae:d7e4:c3e/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+(venv) test1@test1-desktop:~/denoiser$ pactl list sinks short
+131     bluez_output.41_42_BD_0A_35_E3.1        PipeWire        s16le 2ch 48000Hz       SUSPENDED
