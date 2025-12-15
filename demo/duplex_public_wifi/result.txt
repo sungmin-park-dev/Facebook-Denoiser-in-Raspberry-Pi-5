@@ -90,15 +90,19 @@ test2-desktop
 
 Step 3: mDNS 테스트 🌐
 test1에서 test2로 테스트:
-bashping -c 3 test2-desktop.local
+
+ping -c 3 test2-desktop.local
 ```
 
-**예상 출력:**
-```
+test1@test1-desktop:~/denoiser$ ping -c 3 test2-desktop.local
 PING test2-desktop.local (10.249.98.76) 56(84) bytes of data.
-64 bytes from test2-desktop.local (10.249.98.76): icmp_seq=1 ttl=64 time=5.23 ms
-64 bytes from test2-desktop.local (10.249.98.76): icmp_seq=2 ttl=64 time=4.87 ms
-64 bytes from test2-desktop.local (10.249.98.76): icmp_seq=3 ttl=64 time=5.01 ms
+64 bytes from 10.249.98.76: icmp_seq=1 ttl=63 time=10.0 ms
+64 bytes from 10.249.98.76: icmp_seq=2 ttl=63 time=10.2 ms
+64 bytes from 10.249.98.76: icmp_seq=3 ttl=63 time=9.41 ms
+
+--- test2-desktop.local ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 9.412/9.877/10.219/0.340 m
 
 test2에서 test1로 테스트:
 ping -c 3 test1-desktop.local
